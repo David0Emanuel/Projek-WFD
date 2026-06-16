@@ -9,10 +9,8 @@ class Transaksi extends Model
 {
     use HasFactory;
 
-    // 1. Definisikan nama tabel secara eksplisit jika nama tabel Anda berbeda dari konvensi
     protected $table = 'transaksis';
 
-    // 2. Daftarkan kolom yang boleh diisi secara massal (Mass Assignment)
     protected $fillable = [
         'user_id',
         'kamar_id',
@@ -24,7 +22,6 @@ class Transaksi extends Model
         'foto_meteran',
     ];
 
-    // 3. Casting tipe data otomatis (Opsional, sangat berguna untuk enkapsulasi data)
     protected $casts = [
         'expired_at' => 'datetime',
         'total' => 'decimal:2',

@@ -22,3 +22,14 @@ Route::get('/tenant/invoice', function () {
 Route::get('/tenant/maintenance', [MaintenanceTicketController::class, 'index'])->name('tenant.maintenance');
 Route::post('/tenant/maintenance', [MaintenanceTicketController::class, 'store'])->name('tenant.maintenance.store');
 
+use App\Http\Controllers\TransaksiController;
+
+// Route untuk melihat daftar transaksi
+Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
+
+// Route untuk submit form tagihan bulanan + upload meteran (Oleh Admin)
+Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
+
+// Route untuk submit form booking DP (Oleh Visitor)
+Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
+
