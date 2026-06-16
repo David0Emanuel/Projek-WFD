@@ -2,29 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Kamar extends Model
 {
-    use HasFactory;
+    protected $table = 'kamars'; 
+    protected $fillable = ['kos_id', 'nomor', 'tipe_kamar', 'harga', 'status'];
 
-    // Definisikan nama tabel
-    protected $table = 'kamars';
+    public function kos() {
+        return $this->belongsTo(Kos::class);
+    }
+    public function tenant() {
+        return $this->hasOne(User::class, 'kamar_id');
+    }
 
-    // Kolom yang boleh diisi massal
-    protected $fillable = [
-        'nomor_kamar',
-        'tipe_kamar',
-        'harga_bulanan',
-        'status',
-    ];
-
-    /**
-     * Relasi: Satu kamar bisa memiliki banyak riwayat transaksi/invoice.
-     */
-    public function transaksis()
+    public function maintenanceTikets()
     {
-        return $this->hasMany(Transaksi::class, 'kamar_id');
+        return $this->hasMany(MaintenanceTiket::class);
     }
 }

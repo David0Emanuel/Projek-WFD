@@ -2,23 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Transaksi;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
-
-    /**
-     * Atribut yang dapat diisi secara massal (Mass Assignment).
-     */
     protected $fillable = [
         'username',
         'nama',
@@ -32,11 +22,42 @@ class User extends Authenticatable
         'tanggal_selesaiSewa',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
+    public function kos()
+    {
+        return $this->belongsTo(Kos::class, 'kos_id');
+    }
+
+    public function kamar()
+    {
+        return $this->belongsTo(Kamar::class, 'kamar_id');
+    }
+    
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class);
+    }
+
+    // User bisa memiliki banyak tiket keluhan
+    public function maintenanceTikets()
+    {
+        return $this->hasMany(MaintenanceTiket::class);
+    }
+
+    // User bisa mengajukan banyak jadwal survey
+    public function surveys()
+    {
+        return $this->hasMany(Survey::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -44,4 +65,5 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
 }
