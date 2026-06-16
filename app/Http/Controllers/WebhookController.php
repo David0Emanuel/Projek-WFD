@@ -11,64 +11,66 @@ class WebhookController extends Controller
 {
     public function handlePayment(Request $request)
     {
-        // 1. Ambil data dari payload webhook
+        // 1. Ambil payload dari Midtrans
         $payload = $request->all();
-        Log::info('Webhook Payload Diterima:', $payload); // Simpan ke log untuk debugging
-
-        $orderId = $payload['order_id']; // Sesuai dengan id transaksi di database
+        $orderIdLengkap = $payload['order_id']; // Berisi format 'INV-1'
         $statusCode = $payload['status_code'];
         $grossAmount = $payload['gross_amount'];
         $signatureKey = $payload['signature_key'];
         $transactionStatus = $payload['transaction_status'];
 
-        // 2. Verifikasi Signature Key (KEAMANAN SANGAT PENTING)
-        // Rumus Midtrans: hash SHA512(order_id + status_code + gross_amount + server_key)
-        $serverKey = env('MIDTRANS_SERVER_KEY'); // Pastikan Anda set ini di file .env
-        $mySignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+        Log::info("Webhook masuk untuk Order: {$orderIdLengkap}. Status: {$transactionStatus}");
+
+        // 2. Verifikasi Signature Key (Keamanan)
+        $serverKey = env('MIDTRANS_SERVER_KEY');
+        $mySignature = hash('sha512', $orderIdLengkap . $statusCode . $grossAmount . $serverKey);
 
         if ($signatureKey !== $mySignature) {
-            // Jika signature tidak cocok, tolak request (kemungkinan hacker/request palsu)
             return response()->json(['message' => 'Invalid Signature'], 403);
         }
 
-        // 3. Cari Data Transaksi di Database
-        $transaksi = Transaksi::find($orderId);
+        // 3. Buang teks 'INV-' untuk mendapatkan ID angka asli ke tabel transaksi
+        $transaksiId = str_replace('INV-', '', $orderIdLengkap);
+        
+        // Cari Data Transaksi di Database
+        $transaksi = Transaksi::find($transaksiId);
         
         if (!$transaksi) {
+            Log::error("Transaksi dengan ID Asli {$transaksiId} tidak ditemukan!");
             return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
         }
 
-        // Jika transaksi sudah lunas sebelumnya, abaikan saja untuk menghindari double action
+        // Jika transaksi sudah lunas sebelumnya, abaikan (mencegah double-update)
         if ($transaksi->status_transaksi === 'Paid') {
             return response()->json(['message' => 'Transaksi sudah lunas sebelumnya'], 200);
         }
 
-        // 4. Logika Update Status berdasarkan Response Payment Gateway
+        // 4. Logika Update Status sesuai hasil Midtrans
         if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
-            // --- PEMBAYARAN BERHASIL (LUNAS) ---
+            // PEMBAYARAN BERHASIL LUNAS
             $transaksi->update(['status_transaksi' => 'Paid']);
+            Log::info("Transaksi {$transaksiId} BERHASIL DIBAYAR.");
             
-            // Catatan: Menurut proposal, visitor akan menjadi tenant setelah check-in & dikonfirmasi admin,
-            // jadi saat lunas DP, biarkan status kamar tetap 'Booking'.
+            // TODO: Sisipkan fungsi FonnteService di sini untuk WA otomatis
             
         } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
-            // --- PEMBAYARAN GAGAL / KEDALUWARSA ---
+            // PEMBAYARAN GAGAL/KADALUARSA
             $transaksi->update(['status_transaksi' => 'Expired']);
+            Log::info("Transaksi {$transaksiId} GAGAL/KADALUARSA.");
             
-            // Jika ini adalah DP Booking, kembalikan status kamar menjadi 'Kosong' kembali
+            // Jika ini DP Booking yang hangus, bebaskan kembali kamarnya
             if ($transaksi->type === 'DP Booking') {
                 $kamar = Kamar::find($transaksi->kamar_id);
                 if ($kamar) {
                     $kamar->update(['status' => 'Kosong']);
+                    Log::info("Kamar ID {$transaksi->kamar_id} kembali Kosong.");
                 }
             }
-            
         } elseif ($transactionStatus == 'pending') {
-            // --- MENUNGGU PEMBAYARAN ---
+            // MENUNGGU PEMBAYARAN
             $transaksi->update(['status_transaksi' => 'Unpaid']);
         }
 
-        // Beri respon 200 OK agar payment gateway tahu webhook berhasil diterima
         return response()->json(['message' => 'Webhook berhasil diproses']);
     }
 }

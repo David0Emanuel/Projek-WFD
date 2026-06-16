@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\PaymentController;
 
 // --- AUTH ROUTES ---
 Route::middleware('guest')->group(function () {
@@ -57,3 +58,7 @@ Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])-
 
 // Route untuk submit form booking DP (Oleh Visitor)
 Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
+
+
+Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout')->middleware('auth');
+
