@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TransaksiController;
 
 // --- AUTH ROUTES ---
 Route::middleware('guest')->group(function () {
@@ -31,19 +32,6 @@ Route::middleware(['auth'])->group(function () {
         })->name('dashboard');
     });
 
-<<<<<<< HEAD
-use App\Http\Controllers\TransaksiController;
-
-// Route untuk melihat daftar transaksi
-Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
-
-// Route untuk submit form tagihan bulanan + upload meteran (Oleh Admin)
-Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
-
-// Route untuk submit form booking DP (Oleh Visitor)
-Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
-
-=======
     // 3. ADMIN CABANG
     Route::middleware(['role:admin_cabang'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', function () {
@@ -59,4 +47,13 @@ Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])-
     });
 
 });
->>>>>>> d1c14fa2b1b075fc60caf8cad40bd7003f797c0b
+
+// --- TRANSAKSI ROUTES ---
+// Route untuk melihat daftar transaksi
+Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
+
+// Route untuk submit form tagihan bulanan + upload meteran (Oleh Admin)
+Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
+
+// Route untuk submit form booking DP (Oleh Visitor)
+Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
