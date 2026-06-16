@@ -1,24 +1,48 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
-Route::get('/', function () {
-    return view('welcome');
+// --- AUTH ROUTES ---
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'processLogin']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'processRegister']);
 });
 
-use App\Http\Controllers\MaintenanceTicketController;
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Tenant Dashboard Route
-Route::get('/tenant/dashboard', function () {
-    return view('tenant.dashboard');
-})->name('tenant.dashboard');
+// --- PROTECTED ROUTES BERDASARKAN ROLE ---
+Route::middleware(['auth'])->group(function () {
 
-// Tenant Invoice & Tagihan Route
-Route::get('/tenant/invoice', function () {
-    return view('tenant.invoice');
-})->name('tenant.invoice');
+    // 1. VISITOR
+    Route::middleware(['role:visitor'])->prefix('visitor')->name('visitor.')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('visitor.dashboard'); // Minta David buatkan view ini
+        })->name('dashboard');
+    });
 
-// Tenant Maintenance Ticket Routes
-Route::get('/tenant/maintenance', [MaintenanceTicketController::class, 'index'])->name('tenant.maintenance');
-Route::post('/tenant/maintenance', [MaintenanceTicketController::class, 'store'])->name('tenant.maintenance.store');
+    // 2. TENANT
+    Route::middleware(['role:tenant'])->prefix('tenant')->name('tenant.')->group(function () {
+        // Ini menyambung ke view yang sudah David buat di screenshot
+        Route::get('/dashboard', function () {
+            return view('tenant.dashboard'); 
+        })->name('dashboard');
+    });
 
+    // 3. ADMIN CABANG
+    Route::middleware(['role:admin_cabang'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard'); // Minta David buatkan view ini
+        })->name('dashboard');
+    });
+
+    // 4. SUPER ADMIN
+    Route::middleware(['role:super_admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('superadmin.dashboard'); // Minta David buatkan view ini
+        })->name('dashboard');
+    });
+
+});
