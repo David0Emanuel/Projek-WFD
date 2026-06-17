@@ -48,6 +48,11 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         return view('tenant.dashboard'); 
     })->name('dashboard');
 
+    // 👇 Rute invoice ditambahkan di sini agar sidebar milik David tidak error 👇
+    Route::get('/invoice', function () {
+        return view('tenant.invoice'); 
+    })->name('invoice');
+
     Route::get('/maintenance', [MaintenanceTicketController::class, 'index'])->name('maintenance');
     Route::post('/maintenance', [MaintenanceTicketController::class, 'store'])->name('maintenance.store');
 });
