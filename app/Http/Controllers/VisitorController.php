@@ -50,4 +50,15 @@ class VisitorController extends Controller
 
         return view('visitor.detail', compact('branch'));
     }
+    public function storeSurvey(Request $request)
+    {
+        // Nanti kamu bisa tambahkan kode untuk menyimpan data ke database di sini
+        return redirect()->back()->with('success', 'Pengajuan survey berhasil dikirim. Admin akan segera menghubungi Anda!');
+    }
+
+    public function storeBooking(Request $request)
+    {
+        // Nanti kamu bisa tambahkan kode untuk menyimpan data booking ke database di sini
+        return redirect()->back()->with('success', 'Booking berhasil diajukan! Silakan selesaikan pembayaran.');
+    }
 }

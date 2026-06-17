@@ -1,9 +1,8 @@
-<aside id="superadmin-sidebar" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out lg:translate-x-0">
+<aside id="superadmin-sidebar" class="fixed inset-y-0 left-0 z-40 flex flex-col min-h-screen w-64 -translate-x-full transform border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out lg:translate-x-0">
     
     <div class="flex h-16 shrink-0 items-center justify-between px-6 border-b border-gray-100 bg-slate-50">
         <div class="flex items-center gap-2">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">PB</div>
-            <span class="text-lg font-black text-gray-800 tracking-tight">PuluBoys <span class="text-sm font-medium text-blue-600">Admin</span></span>
+            <span class="text-lg font-black text-gray-800 tracking-tight">Kos<span class="text-blue-500">In</span>Aja</span>
         </div>
         <button type="button" onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-gray-600 cursor-pointer">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -61,14 +60,14 @@
             Pengaturan Sistem
         </a>
 
-        <div class="pt-4 mt-2">
+        <div class="pt-3 mt-auto">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 cursor-pointer">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                     </svg>
-                    Keluar Sistem
+                    Logout
                 </button>
             </form>
         </div>

@@ -3,7 +3,7 @@
 
     <!-- Logo -->
     <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-        <h1 class="text-lg font-bold text-gray-600">Pulu<span class="text-blue-500">Boys</span></h1>
+        <h1 class="text-lg font-bold text-black     ">Kos<span class="text-blue-500">In</span>Aja</h1>
         <!-- Tombol tutup sidebar (mobile) -->
         <button type="button" onclick="toggleSidebar()" class="p-1 text-gray-400 hover:text-gray-600 lg:hidden">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

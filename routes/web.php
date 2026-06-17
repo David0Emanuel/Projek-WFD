@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Models\Kos;
+use Illuminate\Http\Request;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\VisitorController;
@@ -9,6 +11,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
+
+Route::post('/daftar-cabang/survey', [VisitorController::class, 'storeSurvey'])->name('visitor.survey.store');
+Route::post('/daftar-cabang/booking', [VisitorController::class, 'storeBooking'])->name('visitor.booking.store');
+
 Route::get('/daftar-cabang/{id}', [VisitorController::class, 'show'])->name('visitor.branch.show');
 
 // --- AUTH ROUTES (DIBUKA SEMENTARA) ---
@@ -59,9 +65,26 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 
 // 3. ADMIN CABANG
 Route::prefix('admin')->name('admin.')->group(function () {
+    
+    // 1. Dashboard / Ringkasan
     Route::get('/dashboard', function () {
-        return view('admin.dashboard'); 
+        return view('admin.dashboard');
     })->name('dashboard');
+
+    // 2. Manajemen Kamar & Meteran
+    Route::get('/kamar', function () {
+        return view('admin.kamar');
+    })->name('kamar');
+
+    // 3. Survey & Check-In
+    Route::get('/survey', function () {
+        return view('admin.survey');
+    })->name('survey');
+
+    // 4. Komplain / Maintenance
+    Route::get('/komplain', function () {
+        return view('admin.komplain');
+    })->name('komplain');
 });
 
 // 4. SUPER ADMIN
@@ -95,36 +118,54 @@ Route::prefix('test-superadmin')->name('superadmin.')->group(function () {
         return view('superadmin.dashboard');
     })->name('dashboard');
 
-    Route::post('/cabang', function () {
-        return redirect()->back()->with('success', 'Preview: Cabang berhasil ditambahkan');
+    // tambah cabang baru
+    Route::post('/cabang', function (Request $request) {
+        // 1. Validasi input
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'alamat' => 'required|string',
+        ]);
+
+        // 2. Simpan ke database
+        Kos::create([
+            'nama' => $request->nama,
+            'alamat' => $request->alamat,
+        ]);
+
+        // 3. Kembalikan ke halaman sebelumnya dengan pesan sukses
+        return redirect()->back()->with('success', 'Cabang baru berhasil ditambahkan ke dalam sistem.');
     })->name('cabang.store');
 
-    // Dummy edit cabang
+    // menampilkan daftar cabang
+    Route::get('/cabang', function () {
+        
+        $cabang = Kos::withCount([
+            'kamars',
+            
+            'kamars as kamar_kosong_count' => function ($query) {
+                $query->where('status', 'Kosong');
+            },
+            
+            'kamars as kamar_terisi_count' => function ($query) {
+                $query->whereIn('status', ['Terisi', 'Booking']); 
+            }
+        ])
+        ->orderBy('created_at', 'desc') // Mengurutkan dari yang terbaru
+        ->paginate(10); // Menampilkan 10 data per halaman
+
+        return view('superadmin.cabang.index', compact('cabang'));
+        
+    })->name('cabang.index');
+
+    // edit cabang
     Route::put('/cabang/{id}', function ($id) {
         return redirect()->back()->with('success', 'Preview: Cabang berhasil diupdate');
     })->name('cabang.update');
 
-    // Dummy hapus cabang
+    // hapus cabang
     Route::delete('/cabang/{id}', function ($id) {
         return redirect()->back()->with('success', 'Preview: Cabang berhasil dihapus');
     })->name('cabang.destroy');
-
-    // ================= CABANG =================
-    Route::get('/cabang', function () {
-        $data = collect([
-            (object)[
-                'id' => 1,
-                'nama' => 'PuluBoys Siwalankerto',
-                'alamat' => 'Surabaya',
-                'kamar_count' => 20,
-                'kamar_kosong_count' => 5,
-                'kamar_terisi_count' => 15,
-            ]
-        ]);
-
-        $cabang = new LengthAwarePaginator($data, 1, 10);
-        return view('superadmin.cabang.index', compact('cabang'));
-    })->name('cabang.index');
 
     // ================= PENGHUNI =================
     Route::get('/penghuni', function () {

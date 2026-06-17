@@ -3,39 +3,35 @@
 @section('title', 'Profile Visitor - KosInAja')
 
 @section('content')
-<div class="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-    <!-- Section Kiri: Header & Statistik -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr]">
     <section class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <div class="flex flex-col gap-6">
             
-            <!-- Header Profile -->
-            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-4">
+            <div class="flex flex-col items-start gap-4 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p class="text-xs font-bold uppercase tracking-wider text-gray-500">Profile Visitor</p>
                     <h1 class="mt-1 text-2xl font-bold text-gray-800">Halo, {{ Auth::user()->nama ?? Auth::user()->username }}</h1>
                 </div>
-                <div class="rounded-full bg-blue-100 px-4 py-1.5 text-xs font-bold text-blue-700">
+                <div class="w-full sm:w-auto rounded-full bg-blue-100 px-4 py-1.5 text-center text-xs font-bold text-blue-700">
                     Role : Visitor
                 </div>
             </div>
 
-            <!-- Card Statistik -->
-            <!-- <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div class="rounded-lg border border-gray-100 bg-gray-50 p-5">
                     <p class="text-xs font-semibold uppercase text-gray-500">Cabang Tersedia</p>
-                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $branchesCount }}</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $branchesCount ?? 0 }}</p>
                 </div>
                 <div class="rounded-lg border border-gray-100 bg-gray-50 p-5">
                     <p class="text-xs font-semibold uppercase text-gray-500">Kamar Kosong</p>
-                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $availableRoomsCount }}</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $availableRoomsCount ?? 0 }}</p>
                 </div>
                 <div class="rounded-lg border border-gray-100 bg-gray-50 p-5">
                     <p class="text-xs font-semibold uppercase text-gray-500">Status Akun</p>
                     <p class="mt-2 text-lg font-bold capitalize text-gray-800">{{ Auth::user()->role }}</p>
                 </div>
-            </div> -->
+            </div>
 
-            <!-- Info Alur Booking -->
             <div class="rounded-lg border border-blue-100 bg-blue-50 p-6">
                 <div class="flex items-center gap-2 mb-3">
                     <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -53,7 +49,6 @@
         </div>
     </section>
 
-    <!-- Section Kanan: Info Akun -->
     <section class="h-fit rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <div class="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4">
             <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
