@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Kos;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,11 +10,13 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $kosRungkut = Kos::create([
-            'nama' => 'PuluBoys Rungkut',
-            'alamat' => 'Jl. Rungkut Madya No. 10, Surabaya',
+        // 1. Panggil seeder lain secara berurutan
+        $this->call([
+            BranchSeeder::class, // Mengeksekusi Kos ID 1 (Sukolilo) dan Kos ID 2 (Rungkut)
+            KamarSeeder::class,  // Mengeksekusi data kamar
         ]);
 
+        // 2. Buat User Super Admin
         User::create([
             'username' => 'superadmin',
             'nama' => 'Super Admin PuluBoys',
@@ -27,6 +28,7 @@ class DatabaseSeeder extends Seeder
             'kamar_id' => null,
         ]);
 
+        // 3. Buat User Admin Rungkut
         User::create([
             'username' => 'adminrungkut',
             'nama' => 'Admin Rungkut',
@@ -34,7 +36,7 @@ class DatabaseSeeder extends Seeder
             'no_wa' => '082222222222',
             'password' => Hash::make('admin123'), 
             'role' => 'admin_cabang',
-            'kos_id' => $kosRungkut->id, 
+            'kos_id' => 2, 
             'kamar_id' => null,
         ]);
     }
