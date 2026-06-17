@@ -27,44 +27,43 @@ class TransaksiController extends Controller
      * Logika untuk Admin men-generate Invoice Tagihan Bulanan & Upload Meteran
      */
     public function storeBulanan(Request $request)
-    {
-        // 1. Validasi Input
-        $request->validate([
-            'user_id'       => 'required|exists:users,id',
+{
+    try {
+        // 1. Validasi
+        $validator = \Validator::make($request->all(), [
             'kamar_id'      => 'required|exists:kamars,id',
-            'total'         => 'required|numeric|min:0',
-            'angka_meteran' => 'required|integer|min:0',
-            'foto_meteran'  => 'required|image|mimes:jpeg,png,jpg|max:2048', // Maksimal 2MB
+            'user_id'       => 'required|exists:users,id',
+            'angka_meteran' => 'required|numeric',
+            'total'         => 'required|numeric',
+            'foto_meteran'  => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // 2. Logika Upload Foto Bukti Meteran
-        $fotoPath = null;
-        if ($request->hasFile('foto_meteran')) {
-            // Simpan foto ke folder 'storage/app/public/bukti_meteran'
-            // Jangan lupa jalankan: php artisan storage:link
-            $file = $request->file('foto_meteran');
-            $namaFile = time() . '_' . $file->getClientOriginalName();
-            $fotoPath = $file->storeAs('bukti_meteran', $namaFile, 'public');
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
         }
 
-        // 3. Simpan Data Transaksi ke Database
-        $transaksi = Transaksi::create([
-            'user_id'          => $request->user_id,
+        // 2. Upload Foto
+        $path = $request->file('foto_meteran')->store('meteran', 'public');
+
+        // 3. Simpan
+        Transaksi::create([
             'kamar_id'         => $request->kamar_id,
-            'total'            => $request->total,
-            'status_transaksi' => 'Unpaid', // Default status awal
-            'type'             => 'Bulanan', // Tipe transaksi bulanan
+            'user_id'          => $request->user_id,
             'angka_meteran'    => $request->angka_meteran,
-            'foto_meteran'     => $fotoPath,
-            'expired_at'       => Carbon::now()->addDays(7), // Tenggat waktu bayar 7 hari
+            'total'            => $request->total,
+            'foto_meteran'     => $path,
+            'status_transaksi' => 'Unpaid',
+            'type'             => 'Bulanan',
+            'expired_at'       => Carbon::now()->addDays(3),
         ]);
 
-        // return redirect()->back()->with('success', 'Invoice bulanan berhasil dibuat!');
-        return response()->json([
-            'message' => 'Invoice bulanan berhasil di-generate!',
-            'data'    => $transaksi
-        ], 201);
+        return response()->json(['status' => 'success', 'message' => 'Data berhasil disimpan']);
+
+    } catch (\Exception $e) {
+        // Jika ada error sistem (database/server), kirim pesan error
+        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }
+}
 
     /**
      * Logika untuk Visitor melakukan Booking DP (Tanpa Meteran)
