@@ -59,6 +59,9 @@ class VisitorController extends Controller
 
     public function storeBooking(Request $request)
     {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Harap login terlebih dahulu untuk melakukan booking.');
+        }
 
         // 1. Validasi input dari form UI David
         $request->validate([
@@ -68,10 +71,7 @@ class VisitorController extends Controller
 
         // 2. Ambil data kamar
         $kamar = Kamar::findOrFail($request->kamar_id);
-
-            // Karena middleware auth sementara dimatikan di web.php, 
-            // kita pakai fallback user ID 1 agar tidak error saat testing
-            $userId = Auth::id(); 
+        $userId = Auth::id();
 
         // 3. Buat transaksi DP Booking
          $transaksi = Transaksi::create([

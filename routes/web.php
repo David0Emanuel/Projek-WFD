@@ -7,7 +7,10 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\MaintenanceTicketController;
+use App\Http\Controllers\KamarController;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Transaksi;
+use App\Http\Controllers\WebhookController;
 
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
@@ -51,12 +54,18 @@ Route::prefix('visitor')->name('visitor.')->group(function () {
 // 2. TENANT
 Route::prefix('tenant')->name('tenant.')->group(function () {
     Route::get('/dashboard', function () {
-        return view('tenant.dashboard'); 
+        
+       $transaksi = Transaksi::where('type', 'Bulanan')->latest()->first();
+
+        return view('tenant.dashboard', compact('transaksi'));
     })->name('dashboard');
 
     // 👇 Rute invoice ditambahkan di sini agar sidebar milik David tidak error 👇
     Route::get('/invoice', function () {
-        return view('tenant.invoice'); 
+
+       $transaksi = Transaksi::where('type', 'Bulanan')->latest()->first();
+        return view('tenant.invoice', compact('transaksi'));
+
     })->name('invoice');
 
     Route::get('/maintenance', [MaintenanceTicketController::class, 'index'])->name('maintenance');
@@ -67,24 +76,20 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 Route::prefix('admin')->name('admin.')->group(function () {
     
     // 1. Dashboard / Ringkasan
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [KamarController::class, 'index'])->name('dashboard');
 
     // 2. Manajemen Kamar & Meteran
-    Route::get('/kamar', function () {
-        return view('admin.kamar');
-    })->name('kamar');
+    Route::get('/kamar', [KamarController::class, 'kamar'])->name('kamar');
 
     // 3. Survey & Check-In
-    Route::get('/survey', function () {
-        return view('admin.survey');
-    })->name('survey');
+    Route::get('/survey', [KamarController::class, 'survey'])->name('survey');
 
     // 4. Komplain / Maintenance
-    Route::get('/komplain', function () {
-        return view('admin.komplain');
-    })->name('komplain');
+    Route::get('/komplain', [KamarController::class, 'komplain'])->name('komplain');
+
+    Route::post('/kamar/meteran', [KamarController::class, 'storeMeteran'])->name('kamar.meteran');
+    Route::post('/kamar/maintenance', [KamarController::class, 'updateMaintenance'])->name('kamar.maintenance');
+    Route::post('/kamar/kosong', [KamarController::class, 'markAsKosong'])->name('kamar.kosong');
 });
 
 // 4. SUPER ADMIN
@@ -235,4 +240,8 @@ Route::prefix('test-superadmin')->name('superadmin.')->group(function () {
     Route::get('/pengaturan', function () {
         return view('superadmin.pengaturan.index');
     })->name('pengaturan.index');
+
+Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+    
 });

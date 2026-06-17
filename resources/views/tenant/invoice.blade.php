@@ -90,7 +90,7 @@
             <!-- Tombol Bayar Tagihan Mendatang -->
             <div>
                 <!-- KODE BARU (Tersambung ke Midtrans) -->
-                <a href="{{ route('pembayaran.checkout', $tagihan->id) }}" 
+                <a href="{{ route('pembayaran.checkout', $transaksi?->id) }}" 
                     class="block text-center w-full py-3 bg-green-500 hover:bg-green-600 border border-green-600 rounded-lg font-bold text-sm text-white transition-colors">
                     Bayar Via Payment Gateway
                 </a>

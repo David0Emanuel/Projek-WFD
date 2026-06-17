@@ -59,7 +59,12 @@ class WebhookController extends Controller
             if (strtoupper($transaksi->type) == 'DP') {
         
                 // Ubah role user dari 'visitor' menjadi 'tenant' sesuai instruksi UI
-                $transaksi->user->update(['role' => 'tenant']);
+                $transaksi->user->update([
+                            'role' => 'tenant',
+                            'kamar_id' => $transaksi->kamar_id,
+                            'kos_id' => Kamar::find($transaksi->kamar_id)->kos_id ?? null, 
+                            'tanggal_mulaiSewa' => now()->toDateString(),
+                        ]);
         
                 // Ubah status kamar menjadi 'Terisi'
                 $transaksi->kamar->update(['status' => 'Terisi']);
@@ -104,15 +109,24 @@ class WebhookController extends Controller
         }
 
 
-        Http::withOptions([
-            'curl' => [
-                CURLOPT_CAINFO => 'C:/laragon/etc/ssl/cacert.pem',
-            ]
-        ])->withHeaders([
-            'Authorization' => $token
-        ])->post('https://api.fonnte.com/send', [
-            'target' => $target,
-            'message' => $message,
-        ]);
+        // Http::withOptions([
+        //     'curl' => [
+        //         CURLOPT_CAINFO => 'C:/laragon/etc/ssl/cacert.pem',
+        //     ]
+        // ])->withHeaders([
+        //     'Authorization' => $token
+        // ])->post('https://api.fonnte.com/send', [
+        //     'target' => $target,
+        //     'message' => $message,
+        // ]);
+
+
+
+        Http::withHeaders([
+    'Authorization' => env('FONNTE_TOKEN')
+])->post('https://api.fonnte.com/send', [
+    'target' => $target,
+    'message' => $message,
+]);
     }
 }
