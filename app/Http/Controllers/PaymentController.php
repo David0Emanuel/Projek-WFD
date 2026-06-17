@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\MidtransService;
-use App\Models\Transaksi; // Import model transaksi
+use App\Services\MidtransService; 
+use App\Models\Transaksi; 
 
 class PaymentController extends Controller
 {
@@ -15,26 +15,24 @@ class PaymentController extends Controller
         $this->midtransService = $midtransService;
     }
 
-    //  menerima ID Transaksi
     public function checkout($id)
     {
-        // 1. Ambil data asli dari database beserta data penyewanya (relasi user)
+        // 1. Ambil data transaksi beserta data penyewa (relasi user)
         $transaksi = Transaksi::with('user')->findOrFail($id);
 
-        // 2. Siapkan variabel untuk Midtrans
-        // Gunakan prefix 'INV-' digabung dengan ID transaksi asli agar unik
+        // 2. Siapkan data untuk dikirim ke Midtrans
         $orderId = 'INV-' . $transaksi->id; 
-        $totalBayar = $transaksi->total; // Mengambil kolom total dari tabel transaksi
-        $typePembayaran = $transaksi->type; // Bernilai 'Bulanan' atau 'DP Booking'
+        $totalBayar = $transaksi->total; // Menggunakan kolom total
+        $typePembayaran = $transaksi->type; // Bernilai 'DP Booking' atau 'Bulanan'
 
-        // Mengambil data dari tabel users
+        // Mengambil data spesifik dari model User
         $customerDetails = [
             'nama'  => $transaksi->user->nama,
             'email' => $transaksi->user->email,
             'no_wa' => $transaksi->user->no_wa,
         ];
 
-        // 3. Panggil fungsi service Midtrans
+        // 3. Panggil service Midtrans untuk menghasilkan token
         $snapToken = $this->midtransService->createSnapToken(
             $orderId, 
             $totalBayar, 
@@ -42,7 +40,7 @@ class PaymentController extends Controller
             $typePembayaran
         );
 
-        // 4. Arahkan ke halaman UI pembayaran buatan David
+        // 4. Arahkan ke halaman UI (Tugas David)
         return view('tenant.pembayaran', compact('snapToken', 'totalBayar', 'orderId', 'transaksi'));
     }
 }

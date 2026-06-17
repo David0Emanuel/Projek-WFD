@@ -15,6 +15,21 @@ class MidtransService
         Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
         Config::$isSanitized = true;
         Config::$is3ds = true;
+
+        //array kosong untuk menambal bug PHP 8
+        $curlOptions = [
+            CURLOPT_HTTPHEADER => [], 
+        ];
+
+
+        // kalo aplikasi berjalan di local (seperti Laragon), matikan SSL.
+        // kalo jalan  hosting, nyalakan SSL.
+        if (app()->environment('local')) {
+            $curlOptions[CURLOPT_SSL_VERIFYHOST] = 0;
+            $curlOptions[CURLOPT_SSL_VERIFYPEER] = 0;
+        }
+
+        \Midtrans\Config::$curlOptions = $curlOptions;
     }
 
     /**
