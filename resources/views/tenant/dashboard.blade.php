@@ -98,7 +98,7 @@
                 <div class="mt-4">
                     <!-- KODE BARU (Tersambung ke Midtrans) -->
                     <!-- Catatan: Angka 1 di bawah ini adalah ID Transaksi dummy. Nanti ubah menjadi $tagihan->id jika sudah terkoneksi DB -->
-                    <a href="{{ route('pembayaran.checkout', 1) }}" 
+                    <a href="{{ route('pembayaran.checkout', $tagihan->id) }}" 
                         class="block text-center w-full rounded-lg bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600 transition-colors">
                         Bayar Via Payment Gateway
                     </a>
