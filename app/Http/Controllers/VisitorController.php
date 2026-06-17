@@ -71,7 +71,7 @@ class VisitorController extends Controller
 
             // Karena middleware auth sementara dimatikan di web.php, 
             // kita pakai fallback user ID 1 agar tidak error saat testing
-            $userId = Auth::id(); 
+            $userId = Auth::id() ?? 1; 
 
         // 3. Buat transaksi DP Booking
          $transaksi = Transaksi::create([

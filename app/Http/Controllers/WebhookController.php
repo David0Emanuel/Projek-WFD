@@ -104,15 +104,24 @@ class WebhookController extends Controller
         }
 
 
-        Http::withOptions([
-            'curl' => [
-                CURLOPT_CAINFO => 'C:/laragon/etc/ssl/cacert.pem',
-            ]
-        ])->withHeaders([
-            'Authorization' => $token
-        ])->post('https://api.fonnte.com/send', [
-            'target' => $target,
-            'message' => $message,
-        ]);
+        // Http::withOptions([
+        //     'curl' => [
+        //         CURLOPT_CAINFO => 'C:/laragon/etc/ssl/cacert.pem',
+        //     ]
+        // ])->withHeaders([
+        //     'Authorization' => $token
+        // ])->post('https://api.fonnte.com/send', [
+        //     'target' => $target,
+        //     'message' => $message,
+        // ]);
+
+
+
+        Http::withHeaders([
+    'Authorization' => env('FONNTE_TOKEN')
+])->post('https://api.fonnte.com/send', [
+    'target' => $target,
+    'message' => $message,
+]);
     }
 }

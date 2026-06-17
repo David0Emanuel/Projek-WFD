@@ -9,6 +9,7 @@ use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\MaintenanceTicketController;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Transaksi;
+use App\Http\Controllers\WebhookController;
 
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
@@ -52,14 +53,17 @@ Route::prefix('visitor')->name('visitor.')->group(function () {
 // 2. TENANT
 Route::prefix('tenant')->name('tenant.')->group(function () {
     Route::get('/dashboard', function () {
-        return view('tenant.dashboard'); 
+        
+       $transaksi = Transaksi::where('type', 'Bulanan')->latest()->first();
+
+        return view('tenant.dashboard', compact('transaksi'));
     })->name('dashboard');
 
     // 👇 Rute invoice ditambahkan di sini agar sidebar milik David tidak error 👇
     Route::get('/invoice', function () {
 
-        $transaksi = Transaksi::latest()->first();
-         return view('tenant.invoice', compact('transaksi'));
+       $transaksi = Transaksi::where('type', 'Bulanan')->latest()->first();
+        return view('tenant.invoice', compact('transaksi'));
 
     })->name('invoice');
 
@@ -239,4 +243,8 @@ Route::prefix('test-superadmin')->name('superadmin.')->group(function () {
     Route::get('/pengaturan', function () {
         return view('superadmin.pengaturan.index');
     })->name('pengaturan.index');
+
+Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+    
 });
