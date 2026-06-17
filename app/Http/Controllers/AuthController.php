@@ -15,10 +15,10 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    // Menampilkan halaman register (Hanya untuk Visitor)
+    // Menampilkan halaman register
     public function showRegister()
     {
-        return view('auth.register');
+        return view('auth.register'); // Pastikan David/kamu membuat view ini nanti
     }
 
     // Proses Register
@@ -26,24 +26,20 @@ class AuthController extends Controller
     {
         $request->validate([
             'username' => 'required|unique:users,username|max:255',
-            'nama' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email',
             'no_wa' => 'required|numeric',
             'password' => 'required|min:6',
         ]);
 
         $user = User::create([
             'username' => $request->username,
-            'nama' => $request->nama,
-            'email' => $request->email,
             'no_wa' => $request->no_wa,
             'password' => Hash::make($request->password),
-            'role' => 'visitor',
+            'role' => 'visitor', 
         ]);
 
         Auth::login($user);
 
-        return redirect()->route('visitor.dashboard');
+        return redirect('/');
     }
 
     // Proses Unified Login
@@ -59,7 +55,7 @@ class AuthController extends Controller
 
             $role = Auth::user()->role;
 
-            // Logika Unified Login Redirect
+            // Logika Unified Login Redirect (Sesuai Proposal)
             switch ($role) {
                 case 'super_admin':
                     return redirect()->route('superadmin.dashboard');
@@ -69,7 +65,7 @@ class AuthController extends Controller
                     return redirect()->route('tenant.dashboard');
                 case 'visitor':
                 default:
-                    return redirect()->route('visitor.dashboard');
+                    return redirect('/');
             }
         }
 

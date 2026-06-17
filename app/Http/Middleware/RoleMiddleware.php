@@ -9,17 +9,17 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, $role): Response
-    {
-        if (!Auth::check()) {
-            return redirect('/login');
-        }
+    // public function handle(Request $request, Closure $next, $role): Response
+    // {
+    //     if (!Auth::check()) {
+    //         return redirect('/login');
+    //     }
 
-        if (Auth::user()->role !== $role) {
-            // Jika role tidak sesuai, lemparkan ke halaman 403 atau redirect ke dashboard masing-masing
-            abort(403, 'Unauthorized action.');
-        }
+    //     if (Auth::user()->role !== $role) {
+    //         // Jika role tidak sesuai, lemparkan ke halaman 403 atau redirect ke dashboard masing-masing
+    //         abort(403, 'Unauthorized action.');
+    //     }
 
-        return $next($request);
-    }
+    //     return $next($request);
+    // }
 }
