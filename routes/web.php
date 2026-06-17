@@ -8,6 +8,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\MaintenanceTicketController;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Transaksi;
 
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
@@ -56,7 +57,10 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 
     // 👇 Rute invoice ditambahkan di sini agar sidebar milik David tidak error 👇
     Route::get('/invoice', function () {
-        return view('tenant.invoice'); 
+
+        $transaksi = Transaksi::latest()->first();
+         return view('tenant.invoice', compact('transaksi'));
+
     })->name('invoice');
 
     Route::get('/maintenance', [MaintenanceTicketController::class, 'index'])->name('maintenance');
