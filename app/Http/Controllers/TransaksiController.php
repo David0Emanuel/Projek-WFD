@@ -97,12 +97,6 @@ class TransaksiController extends Controller
 
         // Update status kamar dan role user otomatis menjadi tenant
         $kamar->update(['status' => 'Booking']);
-        $user->update([
-            'role' => 'tenant',
-            'kamar_id' => $kamar->id,
-            'kos_id' => $kamar->kos_id,
-            'tanggal_mulaiSewa' => Carbon::now()->toDateString(),
-        ]);
 
         return response()->json([
             'message' => 'Booking berhasil, silakan lakukan pembayaran DP dalam 2 jam.',
