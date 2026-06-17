@@ -13,24 +13,17 @@
         <form action="{{ route('tenant.maintenance.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             
-            <!-- Judul Keluhan -->
+            <!-- Deskripsi Keluhan -->
             <div>
-                <label for="title" class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Judul Keluhan</label>
-                <input type="text" name="title" id="title" required placeholder="Contoh: Lampu Kamar Mandi Mati"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-            </div>
-
-            <!-- Deskripsi  -->
-            <div>
-                <label for="description" class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Deskripsi Detail Kerusakan</label>
-                <textarea name="description" id="description" rows="4" required placeholder="Jelaskan detail kerusakan..."
+                <label for="deskripsi" class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Deskripsi Detail Kerusakan</label>
+                <textarea name="deskripsi" id="deskripsi" rows="4" required placeholder="Jelaskan detail kerusakan..."
                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
             </div>
 
             <!-- Foto Bukti -->
             <div>
-                <label for="image" class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Unggah Foto Bukti Kendala</label>
-                <input type="file" name="image" id="image" accept="image/*"
+                <label for="foto" class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Unggah Foto Bukti Kendala</label>
+                <input type="file" name="foto" id="foto" accept="image/*"
                        class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-gray-300 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 cursor-pointer">
             </div>
 
@@ -58,22 +51,22 @@
                     <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
                         <div class="flex justify-between items-start mb-2">
                             <div>
-                                <h4 class="text-sm font-bold text-gray-800">{{ $ticket->title }}</h4>
-                                <p class="text-xs text-gray-500 mt-0.5">{{ $ticket->description }}</p>
+                                <h4 class="text-sm font-bold text-gray-800">Keluhan #{{ $ticket->id }}</h4>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $ticket->deskripsi }}</p>
                             </div>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded border 
-                                @if($ticket->status === 'completed') bg-green-100 text-green-700 border-green-300
-                                @elseif($ticket->status === 'process') bg-blue-100 text-blue-700 border-blue-300
+                                @if($ticket->status === 'Selesai') bg-green-100 text-green-700 border-green-300
+                                @elseif($ticket->status === 'Proses') bg-blue-100 text-blue-700 border-blue-300
                                 @else bg-gray-100 text-gray-600 border-gray-300 @endif uppercase">
-                                {{ $ticket->status === 'process' ? 'Berjalan' : ($ticket->status === 'completed' ? 'Selesai' : 'Pending') }}
+                                {{ $ticket->status === 'Proses' ? 'Berjalan' : ($ticket->status === 'Selesai' ? 'Selesai' : 'Pending') }}
                             </span>
                         </div>
 
-                        @if($ticket->image_path)
+                        @if($ticket->foto)
                             <div class="mt-2.5 mb-4">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Foto:</p>
-                                <a href="{{ asset($ticket->image_path) }}" target="_blank">
-                                    <img src="{{ asset($ticket->image_path) }}" alt="Bukti Kendala" class="h-20 w-auto rounded border border-gray-200 object-cover hover:opacity-90">
+                                <a href="{{ asset($ticket->foto) }}" target="_blank">
+                                    <img src="{{ asset($ticket->foto) }}" alt="Bukti Kendala" class="h-20 w-auto rounded border border-gray-200 object-cover hover:opacity-90">
                                 </a>
                             </div>
                         @endif
@@ -86,14 +79,14 @@
                             <!-- Tahap 1: Selesai Ditangani -->
                             <div class="flex items-start gap-3 relative z-10">
                                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 
-                                    @if($ticket->status === 'completed') bg-green-500 border-green-500 text-white
+                                    @if($ticket->status === 'Selesai') bg-green-500 border-green-500 text-white
                                     @else bg-white border-gray-200 text-gray-300 @endif">
                                     &check;
                                 </div>
                                 <div class="flex-1 text-xs">
-                                    <div class="flex justify-between font-bold @if($ticket->status === 'completed') text-green-600 @else text-gray-400 @endif">
+                                    <div class="flex justify-between font-bold @if($ticket->status === 'Selesai') text-green-600 @else text-gray-400 @endif">
                                         <span>Selesai Ditangani</span>
-                                        @if($ticket->status === 'completed')
+                                        @if($ticket->status === 'Selesai')
                                             <span>Selesai</span>
                                         @endif
                                     </div>
@@ -111,22 +104,19 @@
                             <!-- Tahap 2: Diproses -->
                             <div class="flex items-start gap-3 relative z-10">
                                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 
-                                    @if($ticket->status === 'process' || $ticket->status === 'completed') bg-blue-500 border-blue-500 text-white
+                                    @if($ticket->status === 'Proses' || $ticket->status === 'Selesai') bg-blue-500 border-blue-500 text-white
                                     @else bg-white border-gray-200 text-gray-300 @endif">
                                     &bull;
                                 </div>
                                 <div class="flex-1 text-xs">
-                                    <div class="flex justify-between font-bold @if($ticket->status === 'process' || $ticket->status === 'completed') text-blue-600 @else text-gray-400 @endif">
+                                    <div class="flex justify-between font-bold @if($ticket->status === 'Proses' || $ticket->status === 'Selesai') text-blue-600 @else text-gray-400 @endif">
                                         <span>Diproses</span>
-                                        @if($ticket->status === 'process')
+                                        @if($ticket->status === 'Proses')
                                             <span>Berjalan</span>
                                         @endif
                                     </div>
-                                    @if($ticket->status === 'process' || $ticket->status === 'completed')
+                                    @if($ticket->status === 'Proses' || $ticket->status === 'Selesai')
                                         <p class="text-gray-600 mt-0.5">Keterangan: {{ $ticket->status_message ?? 'Keluhan sedang dikerjakan oleh petugas.' }}</p>
-                                        @if($ticket->progress_date)
-                                            <p class="text-gray-400 text-[10px] mt-0.5">{{ \Carbon\Carbon::parse($ticket->progress_date)->format('d/m/Y H:i') }}</p>
-                                        @endif
                                     @else
                                         <p class="text-gray-400 mt-0.5">Keluhan akan segera diproses.</p>
                                     @endif
@@ -141,7 +131,7 @@
                                 <div class="flex-1 text-xs">
                                     <div class="flex justify-between font-bold text-blue-600">
                                         <span>Tiket Berhasil Diajukan</span>
-                                        @if($ticket->status === 'pending')
+                                        @if($ticket->status === 'Pending')
                                             <span>Pending</span>
                                         @endif
                                     </div>

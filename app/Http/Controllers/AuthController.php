@@ -26,15 +26,19 @@ class AuthController extends Controller
     {
         $request->validate([
             'username' => 'required|unique:users,username|max:255',
+            'nama' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email',
             'no_wa' => 'required|numeric',
             'password' => 'required|min:6',
         ]);
 
         $user = User::create([
             'username' => $request->username,
+            'nama' => $request->nama,
+            'email' => $request->email,
             'no_wa' => $request->no_wa,
             'password' => Hash::make($request->password),
-            'role' => 'visitor', // Default role saat register
+            'role' => 'visitor',
         ]);
 
         Auth::login($user);

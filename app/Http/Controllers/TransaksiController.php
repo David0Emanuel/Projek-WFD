@@ -72,10 +72,11 @@ class TransaksiController extends Controller
     public function storeBooking(Request $request)
     {
         $request->validate([
-            'user_id'  => 'required|exists:users,id',
             'kamar_id' => 'required|exists:kamars,id',
             'total'    => 'required|numeric|min:0',
         ]);
+
+        $user = auth()->user();
 
         // Cek apakah kamar masih kosong
         $kamar = Kamar::findOrFail($request->kamar_id);
@@ -84,18 +85,24 @@ class TransaksiController extends Controller
         }
 
         $transaksi = Transaksi::create([
-            'user_id'          => $request->user_id,
+            'user_id'          => $user->id,
             'kamar_id'         => $request->kamar_id,
-            'total'            => $request->total, // Nominal DP
+            'total'            => $request->total,
             'status_transaksi' => 'Unpaid',
             'type'             => 'DP Booking',
-            'angka_meteran'    => null, // DP tidak butuh meteran
-            'foto_meteran'     => null, // DP tidak butuh foto
-            'expired_at'       => Carbon::now()->addHours(2), // Sesuai proposal: Expired dalam 2 jam
+            'angka_meteran'    => null,
+            'foto_meteran'     => null,
+            'expired_at'       => Carbon::now()->addHours(2),
         ]);
 
-        // Update status kamar sementara menjadi 'Booking'
+        // Update status kamar dan role user otomatis menjadi tenant
         $kamar->update(['status' => 'Booking']);
+        $user->update([
+            'role' => 'tenant',
+            'kamar_id' => $kamar->id,
+            'kos_id' => $kamar->kos_id,
+            'tanggal_mulaiSewa' => Carbon::now()->toDateString(),
+        ]);
 
         return response()->json([
             'message' => 'Booking berhasil, silakan lakukan pembayaran DP dalam 2 jam.',
