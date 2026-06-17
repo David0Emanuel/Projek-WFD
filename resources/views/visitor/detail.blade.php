@@ -15,6 +15,16 @@
             </div>
         </div>
     @endif
+    @if(session('error'))
+        <div class="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
+            <div class="flex items-center gap-3 text-red-800">
+                <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm font-bold">{{ session('error') }}</p>
+            </div>
+        </div>
+    @endif
     
     <nav class="flex flex-wrap items-center gap-2 text-sm font-medium text-gray-500">
         <a href="{{ route('home') }}" class="transition-colors hover:text-gray-900">Beranda</a>
@@ -171,9 +181,15 @@
                     <hr class="my-6 border-dashed border-gray-200">
 
                     <div class="flex flex-col gap-3">
-                        <button type="button" onclick="openBookingModal()" class="w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-blue-700 hover:shadow-md">
-                            Ajukan Booking
-                        </button>
+                        @auth
+                            <button type="button" onclick="openBookingModal()" class="w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-blue-700 hover:shadow-md">
+                                Ajukan Booking
+                            </button>
+                        @else
+                            <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-blue-700 hover:shadow-md">
+                                Login untuk Booking
+                            </a>
+                        @endauth
                         
                         <button type="button" onclick="openSurveyModal()" class="w-full cursor-pointer rounded-xl border border-blue-600 bg-white px-4 py-3.5 text-sm font-bold text-blue-600 transition-all hover:bg-blue-50 hover:shadow-sm">
                             Ajukan Survey Lokasi
@@ -209,19 +225,7 @@
         <div class="mt-5 space-y-5 text-center">
             <div class="rounded-xl bg-red-50 p-4">
                 <p class="text-xs font-bold uppercase tracking-wider text-red-500">Waktu Pembayaran Tersisa</p>
-                <p id="bookingTimer" class="mt-1 font-mono text-4xl font-black tracking-tight text-red-600">30:00</p>
-            </div>
-
-            <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-50 p-5">
-                <p class="mb-3 text-sm font-bold text-gray-700">Scan QRIS / Transfer Rekening</p>
-                <div class="mx-auto flex aspect-square w-48 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white">
-                    <div class="text-center text-gray-400">
-                        <svg class="mx-auto mb-2 h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                        </svg>
-                        <span class="text-xs font-medium">Gambar QRIS/<br>No. Rekening</span>
-                    </div>
-                </div>
+                <p id="bookingTimer" class="mt-1 font-mono text-4xl font-black tracking-tight text-red-600">24:00:00</p>
             </div>
 
             <p class="text-xs leading-relaxed text-gray-500">
@@ -334,7 +338,7 @@
         }, 10);
 
         // Jalankan Timer 30 Menit (1800 detik)
-        startTimer(10, displayTimer);
+        startTimer(86400, displayTimer);
     }
 
     function closeBookingModal() {
@@ -349,20 +353,22 @@
 
     function startTimer(duration, display) {
         clearInterval(timerInterval); // Reset timer jika sudah pernah jalan
-        let timer = duration, minutes, seconds;
+        let timer = duration, hours, minutes, seconds;
         
         timerInterval = setInterval(function () {
-            minutes = parseInt(timer / 60, 10);
+            hours = parseInt(timer / 3600, 10);
+            minutes = parseInt(timer / 1440, 10);
             seconds = parseInt(timer % 60, 10);
 
+            hours = hours < 10 ? "0" + hours : hours;
             minutes = minutes < 10 ? "0" + minutes : minutes;
             seconds = seconds < 10 ? "0" + seconds : seconds;
 
-            display.textContent = minutes + ":" + seconds;
+            display.textContent = hours + ":" + minutes + ":" + seconds;
 
             if (--timer < 0) {
                 clearInterval(timerInterval);   
-                display.textContent = "00:00";
+                display.textContent = "00:00:00";
                 closeBookingModal();
                 alert('Waktu pembayaran habis. Silakan ajukan booking kembali.');
             }

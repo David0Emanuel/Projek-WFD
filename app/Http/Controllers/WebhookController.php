@@ -59,7 +59,12 @@ class WebhookController extends Controller
             if (strtoupper($transaksi->type) == 'DP') {
         
                 // Ubah role user dari 'visitor' menjadi 'tenant' sesuai instruksi UI
-                $transaksi->user->update(['role' => 'tenant']);
+                $transaksi->user->update([
+                            'role' => 'tenant',
+                            'kamar_id' => $transaksi->kamar_id,
+                            'kos_id' => Kamar::find($transaksi->kamar_id)->kos_id ?? null, 
+                            'tanggal_mulaiSewa' => now()->toDateString(),
+                        ]);
         
                 // Ubah status kamar menjadi 'Terisi'
                 $transaksi->kamar->update(['status' => 'Terisi']);

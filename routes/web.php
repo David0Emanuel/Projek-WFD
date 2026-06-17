@@ -7,6 +7,7 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\MaintenanceTicketController;
+use App\Http\Controllers\KamarController;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Transaksi;
 use App\Http\Controllers\WebhookController;
@@ -75,24 +76,20 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 Route::prefix('admin')->name('admin.')->group(function () {
     
     // 1. Dashboard / Ringkasan
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [KamarController::class, 'index'])->name('dashboard');
 
     // 2. Manajemen Kamar & Meteran
-    Route::get('/kamar', function () {
-        return view('admin.kamar');
-    })->name('kamar');
+    Route::get('/kamar', [KamarController::class, 'kamar'])->name('kamar');
 
     // 3. Survey & Check-In
-    Route::get('/survey', function () {
-        return view('admin.survey');
-    })->name('survey');
+    Route::get('/survey', [KamarController::class, 'survey'])->name('survey');
 
     // 4. Komplain / Maintenance
-    Route::get('/komplain', function () {
-        return view('admin.komplain');
-    })->name('komplain');
+    Route::get('/komplain', [KamarController::class, 'komplain'])->name('komplain');
+
+    Route::post('/kamar/meteran', [KamarController::class, 'storeMeteran'])->name('kamar.meteran');
+    Route::post('/kamar/maintenance', [KamarController::class, 'updateMaintenance'])->name('kamar.maintenance');
+    Route::post('/kamar/kosong', [KamarController::class, 'markAsKosong'])->name('kamar.kosong');
 });
 
 // 4. SUPER ADMIN

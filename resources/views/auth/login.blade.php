@@ -11,6 +11,12 @@
             <p class="text-sm text-gray-600">Silakan login jika sudah punya akun untuk melanjutkan booking.</p>
         </div>
 
+        @if(session('error'))
+            <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <form action="{{ route('login') }}" method="POST" class="mt-8 space-y-5">
             @csrf
 
