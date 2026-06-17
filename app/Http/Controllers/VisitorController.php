@@ -6,6 +6,7 @@ use App\Models\Kos;
 use App\Models\Kamar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Transaksi;
 
 class VisitorController extends Controller
 {
@@ -58,7 +59,34 @@ class VisitorController extends Controller
 
     public function storeBooking(Request $request)
     {
-        // Nanti kamu bisa tambahkan kode untuk menyimpan data booking ke database di sini
-        return redirect()->back()->with('success', 'Booking berhasil diajukan! Silakan selesaikan pembayaran.');
+
+        // 1. Validasi input dari form UI David
+        $request->validate([
+            'kamar_id' => 'required|exists:kamars,id',
+            'tanggal_masuk' => 'required|date',
+        ]);
+
+        // 2. Ambil data kamar
+        $kamar = Kamar::findOrFail($request->kamar_id);
+
+            // Karena middleware auth sementara dimatikan di web.php, 
+            // kita pakai fallback user ID 1 agar tidak error saat testing
+            $userId = Auth::check() ? Auth::id() : 1; 
+
+        // 3. Buat transaksi DP Booking
+         $transaksi = Transaksi::create([
+            'user_id' => $userId,
+            'kamar_id' => $kamar->id,
+            'total' => 500000, // Misal nominal tetap DP Booking Rp 500.000
+            'status_transaksi' => 'Unpaid',
+            'type' => 'DP',
+        ]);
+
+        // 4. Ubah status kamar sementara menjadi "Booking" agar tidak diambil orang lain
+         $kamar->update(['status' => 'Booking']);
+
+        // 5. Lempar langsung ke halaman Checkout Midtrans yang sudah kamu buat sebelumnya!
+        return redirect()->route('pembayaran.checkout', $transaksi->id);
     }
+
 }

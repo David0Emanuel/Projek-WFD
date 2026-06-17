@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Transaksi;
 use App\Models\Kamar;
+use Illuminate\Support\Facades\Http;
 
 class WebhookController extends Controller
 {
@@ -45,14 +46,27 @@ class WebhookController extends Controller
             return response()->json(['message' => 'Transaksi sudah lunas sebelumnya'], 200);
         }
 
+
         // 4. Eksekusi Perubahan Database
         if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
             
             // Mengubah status_transaksi menjadi Paid
             $transaksi->update(['status_transaksi' => 'Paid']);
             Log::info("Transaksi {$transaksiId} BERHASIL DIBAYAR.");
-            
-            // TODO: Sisipkan fungsi FonnteService di sini untuk mengirim nota ke WA
+
+
+            // LOGIKA KHUSUS JIKA INI ADALAH PEMBAYARAN DP BOOKING
+            if (strtoupper($transaksi->type) == 'DP') {
+        
+                // Ubah role user dari 'visitor' menjadi 'tenant' sesuai instruksi UI
+                $transaksi->user->update(['role' => 'tenant']);
+        
+                // Ubah status kamar menjadi 'Terisi'
+                $transaksi->kamar->update(['status' => 'Terisi']);
+            }
+
+            // Panggil fungsi WhatsApp Fonnte
+            $this->sendWhatsAppNotification($transaksi);
             
         } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
             
@@ -74,5 +88,31 @@ class WebhookController extends Controller
         }
 
         return response()->json(['message' => 'Webhook berhasil diproses']);
+    }
+
+    private function sendWhatsAppNotification($transaksi){
+        $token = env('FONNTE_TOKEN');
+        $noWa = $transaksi->user->no_wa;
+        // Mengganti angka 0 di depan dengan 62
+        $target = (substr($noWa, 0, 1) == '0') ? '62' . substr($noWa, 1) : $noWa; // Pastikan nomor WA user tersimpan di DB
+
+        // Teks dinamis: Beda tipe tagihan, beda teks WA-nya!
+        if (strtoupper($transaksi->type) == 'DP') {
+            $message = "Selamat! Pembayaran DP Booking kamar Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " BERHASIL. Akun Anda kini resmi ditingkatkan menjadi Tenant di KosInAja.";
+        } else {
+            $message = "Halo {$transaksi->user->nama}, pembayaran Anda untuk tagihan {$transaksi->type} sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah BERHASIL diterima. Terima kasih!";
+        }
+
+
+        Http::withOptions([
+            'curl' => [
+                CURLOPT_CAINFO => 'C:/laragon/etc/ssl/cacert.pem',
+            ]
+        ])->withHeaders([
+            'Authorization' => $token
+        ])->post('https://api.fonnte.com/send', [
+            'target' => $target,
+            'message' => $message,
+        ]);
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\MidtransService; 
 use App\Models\Transaksi; 
 
+
 class PaymentController extends Controller
 {
     protected $midtransService;
@@ -41,6 +42,13 @@ class PaymentController extends Controller
         );
 
         // 4. Arahkan ke halaman UI (Tugas David)
-        return view('components.tenant.pembayaran', compact('snapToken', 'totalBayar', 'orderId', 'transaksi'));
+        if (strtoupper($transaksi->type) == 'DP') {
+            // Jika ini pembayaran DP Booking, buka layout Visitor
+            return view('visitor.pembayaran', compact('snapToken', 'totalBayar', 'orderId', 'transaksi'));
+        } else {
+            // Jika ini pembayaran Bulanan biasa, buka layout Tenant
+            return view('components.tenant.pembayaran', compact('snapToken', 'totalBayar', 'orderId', 'transaksi'));
+        }
+       
     }
 }
