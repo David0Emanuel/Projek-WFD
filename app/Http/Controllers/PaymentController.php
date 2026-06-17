@@ -21,7 +21,7 @@ class PaymentController extends Controller
         $transaksi = Transaksi::with('user')->findOrFail($id);
 
         // 2. Siapkan data untuk dikirim ke Midtrans
-        $orderId = 'INV-' . $transaksi->id; 
+        $orderId = 'INV-' . $transaksi->id . '-' . time();// tambah waktu agar selalu unik
         $totalBayar = $transaksi->total; // Menggunakan kolom total
         $typePembayaran = $transaksi->type; // Bernilai 'DP Booking' atau 'Bulanan'
 
@@ -41,6 +41,6 @@ class PaymentController extends Controller
         );
 
         // 4. Arahkan ke halaman UI (Tugas David)
-        return view('tenant.pembayaran', compact('snapToken', 'totalBayar', 'orderId', 'transaksi'));
+        return view('components.tenant.pembayaran', compact('snapToken', 'totalBayar', 'orderId', 'transaksi'));
     }
 }

@@ -188,4 +188,10 @@ Route::prefix('test-superadmin')->name('superadmin.')->group(function () {
             'transaksi', 'bulanLabels', 'bulanData', 'pendapatanPerCabang'
         ));
     })->name('keuangan.index');
+
+
+
+    Route::get('/pengaturan', function () {
+        return view('superadmin.pengaturan.index');
+    })->name('pengaturan.index');
 });

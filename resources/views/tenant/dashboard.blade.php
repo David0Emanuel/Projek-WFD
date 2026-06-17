@@ -96,10 +96,12 @@
 
                 <!-- Tombol Bayar -->
                 <div class="mt-4">
-                    <button id="btn-payment-gateway" type="button" onclick="openPaymentModal('Rp. 99.999.999')"
-                            class="w-full rounded-lg bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600 cursor-pointer">
+                    <!-- KODE BARU (Tersambung ke Midtrans) -->
+                    <!-- Catatan: Angka 1 di bawah ini adalah ID Transaksi dummy. Nanti ubah menjadi $tagihan->id jika sudah terkoneksi DB -->
+                    <a href="{{ route('pembayaran.checkout', 1) }}" 
+                        class="block text-center w-full rounded-lg bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600 transition-colors">
                         Bayar Via Payment Gateway
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

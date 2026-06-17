@@ -53,7 +53,20 @@ class MidtransService
                 'phone' => $customerDetails['no_wa'],
             ],
         ];
+        
 
+
+        // Menambahkan rincian tagihan agar struk Midtrans lebih jelas
+        $params['item_details'] = [
+            [
+                'id'       => $orderId,
+                'price'    => (int) $grossAmount,
+                'quantity' => 1,
+                'name'     => 'Pembayaran ' . strtoupper($paymentType) . ' PuluBoys',
+            ]
+        ];
+
+        
         // Sesuai proposal: Jika jenisnya DP (Booking), beri countdown timer 2 jam
         if ($paymentType === 'dp') {
             $params['custom_expiry'] = [

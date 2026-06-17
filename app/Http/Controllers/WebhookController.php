@@ -29,8 +29,9 @@ class WebhookController extends Controller
             return response()->json(['message' => 'Invalid Signature'], 403);
         }
 
-        // 3. Buang awalan 'INV-' agar mendapatkan ID murni
-        $transaksiId = str_replace('INV-', '', $orderIdLengkap);
+        // 3. Ambil ID murni dari format 'INV-1-1718608476'
+        $pecah = explode('-', $orderIdLengkap);// Memecah string berdasarkan tanda strip '-'
+        $transaksiId = $pecah[1];// Mengambil bagian tengah, yaitu angka '1'
         
         $transaksi = Transaksi::find($transaksiId);
         

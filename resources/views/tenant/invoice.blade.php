@@ -89,10 +89,11 @@
 
             <!-- Tombol Bayar Tagihan Mendatang -->
             <div>
-                <button type="button" onclick="openPaymentModal('Rp. 99.999.999')"
-                        class="w-full py-3 bg-green-500 hover:bg-green-600 border border-green-600 rounded-lg font-bold text-sm text-white cursor-pointer transition-colors">
+                <!-- KODE BARU (Tersambung ke Midtrans) -->
+                <a href="{{ route('pembayaran.checkout', 1) }}" 
+                    class="block text-center w-full py-3 bg-green-500 hover:bg-green-600 border border-green-600 rounded-lg font-bold text-sm text-white transition-colors">
                     Bayar Via Payment Gateway
-                </button>
+                </a>
             </div>
         </div>
     </div>
