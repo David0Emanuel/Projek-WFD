@@ -26,25 +26,25 @@ Route::post('/daftar-cabang/booking', [VisitorController::class, 'storeBooking']
 Route::get('/daftar-cabang/{id}', [VisitorController::class, 'show'])->name('visitor.branch.show');
 
 // // --- AUTH ROUTES (DIBUKA SEMENTARA) ---
-// Route::get('/login', function () {
-//     return view('auth.login');
-// })->name('login');
+Route::get('/login', function () {
+    return view('auth.login');
+})->name('login');
 
-// Route::post('/login', function () {
-//     return redirect()->back();
-// });
+Route::post('/login', function () {
+    return redirect()->back();
+});
 
-// Route::get('/register', function () {
-//     return view('auth.register');
-// })->name('register');
+Route::get('/register', function () {
+    return view('auth.register');
+})->name('register');
 
-// Route::post('/register', function () {
-//     return redirect()->back();
-// });
+Route::post('/register', function () {
+    return redirect()->back();
+});
 
-// Route::post('/logout', function () {
-//     return redirect()->route('home');
-// })->name('logout');
+Route::post('/logout', function () {
+    return redirect()->route('home');
+})->name('logout');
 // 0-----------------------------------------------------
 
 
@@ -52,43 +52,43 @@ Route::get('/daftar-cabang/{id}', [VisitorController::class, 'show'])->name('vis
 /// - NYALAIN INI DULU KALAU MAU NYOBA LOGIN/REGISTER, SUPERADMIN. DAN JANGAN LUPA MATIKAN,
 ///KODE LINE 28 - 48 DAN 144 -150, SERTA KODE YANG ADA TULISAN BAWAAN DAVID!!!
 //--- AUTH ROUTES ---
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+// Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
+// Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+// Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
+// Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// =====================================================================
-// --- RUTE OPERASIONAL SUPER ADMIN (TERHUBUNG KE DATABASE) ---
-// =====================================================================
-Route::prefix('superadmin')->name('superadmin.')->group(function () {
+// // =====================================================================
+// // --- RUTE OPERASIONAL SUPER ADMIN (TERHUBUNG KE DATABASE) ---
+// // =====================================================================
+// Route::prefix('superadmin')->name('superadmin.')->group(function () {
     
-    // Dasbor Utama
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/survey/{id}/status', [DashboardController::class, 'updateSurveyStatus'])->name('survey.status');
+//     // Dasbor Utama
+//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+//     Route::post('/survey/{id}/status', [DashboardController::class, 'updateSurveyStatus'])->name('survey.status');
 
-    Route::post('/pengumuman', [DashboardController::class, 'storePengumuman'])->name('pengumuman.store');
+//     Route::post('/pengumuman', [DashboardController::class, 'storePengumuman'])->name('pengumuman.store');
 
-    // Manajemen Cabang (CRUD Resmi)
-    Route::get('/cabang', [CabangController::class, 'index'])->name('cabang.index');
-    Route::post('/cabang', [CabangController::class, 'store'])->name('cabang.store');
-    Route::put('/cabang/{cabang}', [CabangController::class, 'update'])->name('cabang.update');
-    Route::delete('/cabang/{cabang}', [CabangController::class, 'destroy'])->name('cabang.destroy');
+//     // Manajemen Cabang (CRUD Resmi)
+//     Route::get('/cabang', [CabangController::class, 'index'])->name('cabang.index');
+//     Route::post('/cabang', [CabangController::class, 'store'])->name('cabang.store');
+//     Route::put('/cabang/{cabang}', [CabangController::class, 'update'])->name('cabang.update');
+//     Route::delete('/cabang/{cabang}', [CabangController::class, 'destroy'])->name('cabang.destroy');
 
-    // Data Penghuni
-    Route::get('/penghuni', [PenghuniController::class, 'index'])->name('penghuni.index');
-    Route::get('/penghuni/{id}', [PenghuniController::class, 'show'])->name('penghuni.show');
+//     // Data Penghuni
+//     Route::get('/penghuni', [PenghuniController::class, 'index'])->name('penghuni.index');
+//     Route::get('/penghuni/{id}', [PenghuniController::class, 'show'])->name('penghuni.show');
 
-    // Laporan Keuangan
-    Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
+//     // Laporan Keuangan
+//     Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
 
-    // Pengaturan Global
-    Route::get('/pengaturan', function () {
-        return view('superadmin.pengaturan.index');
-    })->name('pengaturan.index');
+//     // Pengaturan Global
+//     Route::get('/pengaturan', function () {
+//         return view('superadmin.pengaturan.index');
+//     })->name('pengaturan.index');
 
 
-});
+// });
 //---------------------------------------------------------------------------------------------------
 
 
@@ -148,11 +148,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 //BACAAAA
 //Kalau  mau nyoba super admin matiin matiin dulu yang bawah ini, trs baru login / daftar akun dulu
 // // 4. SUPER ADMIN
-// Route::prefix('superadmin')->name('superadmin.')->group(function () {
-//     Route::get('/dashboard', function () {
-//         return view('superadmin.dashboard'); 
-//     })->name('dashboard');
-// });
+Route::prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('superadmin.dashboard'); 
+    })->name('dashboard');
+});
 
 
 // --- TRANSAKSI ROUTES (MIDDLEWARE DIMATIKAN SEMENTARA) ---
