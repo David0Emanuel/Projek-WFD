@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'kamar_id' => null,
         ]);
 
-        // 3. Buat User Admin Rungkut
+        // 3. Buat User Admin Rungkut (Cabang 2)
         User::create([
             'username' => 'adminrungkut',
             'nama' => 'Admin Rungkut',
@@ -37,6 +37,20 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('admin123'), 
             'role' => 'admin_cabang',
             'kos_id' => 2, 
+            'kamar_id' => null,
+        ]);
+
+        // ==========================================
+        // 4. INI YANG DITAMBAHKAN: Admin Sukolilo (Cabang 1)
+        // ==========================================
+        User::create([
+            'username' => 'adminsukolilo',
+            'nama' => 'Admin Sukolilo',
+            'email' => 'sukolilo@puluboys.com',
+            'no_wa' => '083333333333',
+            'password' => Hash::make('admin123'), 
+            'role' => 'admin_cabang',
+            'kos_id' => 1, 
             'kamar_id' => null,
         ]);
     }

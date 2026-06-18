@@ -8,22 +8,44 @@ use App\Models\Transaksi;
 use App\Models\MaintenanceTiket;
 use App\Models\Survey;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // <-- WAJIB DITAMBAHKAN
 
 class KamarController extends Controller
 {
     public function index()
     {
-        $totalKamar = Kamar::count();
-        $terisiCount = Kamar::where('status', 'Terisi')->count();
+        // $user = Auth::user();
+        // if (!$user) return redirect('/login'); 
+
+        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
+        $user = (object) ['kos_id' => 2];
+
+        // 1. FILTER KAMAR BERDASARKAN CABANG ADMIN
+        $kamarQuery = Kamar::where('kos_id', $user->kos_id);
+
+        $totalKamar = $kamarQuery->count();
+        $terisiCount = (clone $kamarQuery)->where('status', 'Terisi')->count();
         $occupancyRate = $totalKamar > 0 ? round(($terisiCount / $totalKamar) * 100) : 0;
 
+        // 2. FILTER TRANSAKSI (Melalui relasi kamar -> kos_id)
         $waitingCheckinCount = Transaksi::where('type', 'DP')
             ->where('status_transaksi', 'Paid')
+            ->whereHas('kamar', function ($query) use ($user) {
+                $query->where('kos_id', $user->kos_id);
+            })
             ->count();
 
-        $pendingTiketCount = MaintenanceTiket::where('status', 'Pending')->count();
+        // 3. FILTER TIKET KOMPLAIN (Melalui relasi kamar -> kos_id)
+        $pendingTiketCount = MaintenanceTiket::where('status', 'Pending')
+            ->whereHas('kamar', function ($query) use ($user) {
+                $query->where('kos_id', $user->kos_id);
+            })
+            ->count();
 
-        $todaySurveyCount = Survey::whereDate('waktu_survey', now())->count();
+        // 4. FILTER SURVEY BERDASARKAN CABANG ADMIN
+        $todaySurveyCount = Survey::where('kos_id', $user->kos_id)
+            ->whereDate('waktu_survey', now())
+            ->count();
 
         return view('admin.dashboard', compact(
             'totalKamar',
@@ -34,24 +56,38 @@ class KamarController extends Controller
             'todaySurveyCount'
         ));
     }
+
     public function kamar()
     {
-        // Mengambil semua data kamar beserta relasi kos dan penghuninya (user)
-        // Pastikan model Kamar memiliki relasi ke User jika ada
-        $kamars = Kamar::with('kos')->orderBy('nomor', 'asc')->get();
+        // $user = Auth::user();
+        // if (!$user) return redirect('/login');
+        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
+        $user = (object) ['kos_id' => 2];
+
+        // Mengambil kamar khusus untuk cabang admin ini saja
+        $kamars = Kamar::with('kos')
+            ->where('kos_id', $user->kos_id) 
+            ->orderBy('nomor', 'asc')
+            ->get();
+            
         return view('admin.kamar', compact('kamars'));
     }
 
     public function survey()
     {
-        // 1. Data Check-In: Mengambil data langsung dari tabel Kamar yang berstatus 'Booking'
-        // Ini menjamin datanya selalu sama persis dengan halaman Manajemen Kamar
+        // $user = Auth::user();
+        // if (!$user) return redirect('/login');
+        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
+        $user = (object) ['kos_id' => 2];
+        // 1. Data Check-In khusus cabang admin
         $checkins = Kamar::with('kos')
+            ->where('kos_id', $user->kos_id) 
             ->where('status', 'Booking')
             ->get();
         
-        // 2. Data Survey (Tetap sama)
+        // 2. Data Survey khusus cabang admin
         $surveys = Survey::with(['kos'])
+            ->where('kos_id', $user->kos_id) 
             ->whereDate('waktu_survey', '>=', now()->toDateString())
             ->orderBy('waktu_survey', 'asc')
             ->get();
@@ -61,40 +97,47 @@ class KamarController extends Controller
 
     public function komplain()
     {
-        // Mengambil tiket komplain dari terbaru ke terlama
-        $komplains = MaintenanceTiket::with(['kamar'])->orderBy('created_at', 'desc')->get();
+        // $user = Auth::user();
+        // if (!$user) return redirect('/login');
+        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
+        $user = (object) ['kos_id' => 2];
+
+        // Mengambil tiket komplain khusus untuk kamar-kamar yang ada di cabang admin ini
+        $komplains = MaintenanceTiket::with(['kamar'])
+            ->whereHas('kamar', function ($query) use ($user) {
+                $query->where('kos_id', $user->kos_id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
         return view('admin.komplain', compact('komplains'));
     }
-    // ... method komplain yang sudah ada ...
+
+    // ====================================================================
+    // FUNGSI AKSI DI BAWAH INI TETAP SAMA (Tidak perlu ada yg diubah)
+    // ====================================================================
 
     // FUNGSI UNTUK MENYIMPAN TAGIHAN & FOTO METERAN
     public function storeMeteran(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'kamar_id' => 'required|exists:kamars,id',
             'total_tagihan' => 'required|numeric|min:0',
-            'foto_meteran' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Maksimal 2MB
+            'foto_meteran' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
         ]);
 
-        // 2. Simpan Foto ke folder Storage Laravel
         $fotoPath = null;
         if ($request->hasFile('foto_meteran')) {
             $file = $request->file('foto_meteran');
             $filename = time() . '_' . $file->getClientOriginalName();
-            // Akan tersimpan di folder: storage/app/public/meteran
             $fotoPath = $file->storeAs('public/meteran', $filename); 
         }
 
-        // 3. Simpan Data Tagihan ke Database (Tabel Transaksi)
-        // Pastikan struktur kolom ini sesuai dengan tabel Transaksi yang dibuat timmu
         Transaksi::create([
             'kamar_id' => $request->kamar_id,
             'total' => $request->total_tagihan,
-            'type' => 'Tagihan Bulanan', // Tipe transaksi
-            'status_transaksi' => 'Unpaid', // Status belum dibayar oleh tenant
-            // Jika ada kolom khusus foto meteran di database, masukkan $fotoPath ke sana
-            // 'foto_meteran' => str_replace('public/', '', $fotoPath), 
+            'type' => 'Tagihan Bulanan', 
+            'status_transaksi' => 'Unpaid', 
         ]);
 
         return redirect()->back()->with('success', 'Tagihan meteran beserta foto berhasil dikirim ke tenant kamar tersebut.');
@@ -107,13 +150,13 @@ class KamarController extends Controller
             'kamar_id' => 'required|exists:kamars,id',
         ]);
 
-        // Cari kamar berdasarkan ID, lalu ubah statusnya
         $kamar = Kamar::findOrFail($request->kamar_id);
         $kamar->status = 'Maintenance';
         $kamar->save();
 
         return redirect()->back()->with('success', 'Status kamar berhasil diubah. Kamar kini dalam perbaikan dan tidak bisa dibooking.');
     }
+
     // FUNGSI UNTUK MENGEMBALIKAN STATUS KAMAR JADI KOSONG
     public function markAsKosong(Request $request)
     {
