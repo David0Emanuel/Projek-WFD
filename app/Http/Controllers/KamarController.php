@@ -62,7 +62,8 @@ class KamarController extends Controller
         // $user = Auth::user();
         // if (!$user) return redirect('/login');
         // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
-        $user = (object) ['kos_id' => 2];
+        $user = Auth::user();
+        if (!$user) return redirect('/login');
 
         // Mengambil kamar khusus untuk cabang admin ini saja
         $kamars = Kamar::with('kos')
@@ -78,7 +79,9 @@ class KamarController extends Controller
         // $user = Auth::user();
         // if (!$user) return redirect('/login');
         // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
-        $user = (object) ['kos_id' => 2];
+        $user = Auth::user();
+        if (!$user) return redirect('/login');
+        
         // 1. Data Check-In khusus cabang admin
         $checkins = Kamar::with('kos')
             ->where('kos_id', $user->kos_id) 
@@ -100,7 +103,8 @@ class KamarController extends Controller
         // $user = Auth::user();
         // if (!$user) return redirect('/login');
         // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
-        $user = (object) ['kos_id' => 2];
+        $user = Auth::user();
+        if (!$user) return redirect('/login');
 
         // Mengambil tiket komplain khusus untuk kamar-kamar yang ada di cabang admin ini
         $komplains = MaintenanceTiket::with(['kamar'])

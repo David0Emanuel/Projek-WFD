@@ -11,6 +11,7 @@ use App\Http\Controllers\KamarController;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Transaksi;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
@@ -40,6 +41,15 @@ Route::post('/register', function () {
 Route::post('/logout', function () {
     return redirect()->route('home');
 })->name('logout');
+
+// --- AUTH ROUTES ---
+// Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+// Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
+// Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+// Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
+// Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+
 
 
 // =====================================================================

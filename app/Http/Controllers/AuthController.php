@@ -25,23 +25,22 @@ class AuthController extends Controller
     public function processRegister(Request $request)
     {
         $request->validate([
+            'nama'     => 'required|string|max:255',
             'username' => 'required|unique:users,username|max:255',
-            'no_wa' => 'required|numeric',
+            'email'    => 'required|email|unique:users,email|max:255',
+            'no_wa'    => 'required|numeric',
             'password' => 'required|min:6',
         ]);
 
-        $user = User::create([
+     $user = User::create([
+            'nama'     => $request->nama,
             'username' => $request->username,
-            'no_wa' => $request->no_wa,
+            'email'    => $request->email,
+            'no_wa'    => $request->no_wa,
             'password' => Hash::make($request->password),
-            'role' => 'visitor', 
+            'role'     => 'visitor',
         ]);
-
-        Auth::login($user);
-
-        return redirect('/');
     }
-
     // Proses Unified Login
     public function processLogin(Request $request)
     {
@@ -65,7 +64,7 @@ class AuthController extends Controller
                     return redirect()->route('tenant.dashboard');
                 case 'visitor':
                 default:
-                    return redirect('/');
+                    return redirect()->route('visitor.branches');
             }
         }
 

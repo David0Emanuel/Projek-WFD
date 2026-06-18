@@ -54,8 +54,7 @@
                         </td>
                         <td class="px-6 py-4">{{ $survey->kos->nama ?? 'KosInAja' }}</td>
                         <td class="px-6 py-4">
-                            <span class="font-semibold">{{ \Carbon\Carbon::parse($survey->tanggal_survey)->format('d M Y') }}</span><br>
-                            <span class="text-xs text-gray-500">{{ $survey->jam_survey ?? 'Jam belum ditentukan' }}</span>
+                            <span class="font-semibold">{{ \Carbon\Carbon::parse($survey->waktu_survey)->format('d M Y, H:i') }}
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">

@@ -62,9 +62,10 @@
                         <p class="text-[10px] font-bold uppercase text-gray-500">Status</p>
                         <p class="text-sm font-semibold text-gray-800">Sedang Diperbaiki</p>
                     </div>
-                    <form action="#" method="POST">
+                    <form action="{{ route('admin.kamar.kosong') }}" method="POST">
                         @csrf
-                        <button type="button" class="w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-green-700 cursor-pointer">
+                        <input type="hidden" name="kamar_id" value="{{ $kamar->id }}">
+                        <button type="submit" class="w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-green-700 cursor-pointer">
                             Selesai (Kembalikan Kosong)
                         </button>
                     </form>
