@@ -16,4 +16,9 @@ class Kos extends Model
     {
         return $this->hasMany(Survey::class);
     }
+
+    public function admin()
+    {
+        return $this->hasOne(User::class, 'kos_id')->where('role', 'admin_cabang');
+    }
 }

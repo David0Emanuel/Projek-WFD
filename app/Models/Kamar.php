@@ -20,4 +20,10 @@ class Kamar extends Model
     {
         return $this->hasMany(MaintenanceTiket::class);
     }
+
+
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class);
+    }
 }

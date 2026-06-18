@@ -18,30 +18,37 @@ class KeuanganController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $bulan = now()->subMonths($i);
             $bulanLabels[] = $bulan->translatedFormat('M Y');
-            $bulanData[]   = Transaksi::where('status_transaksi', 'paid')
+            $bulanData[]   = Transaksi::whereIn('status_transaksi', ['paid', 'Paid'])
                 ->whereYear('created_at', $bulan->year)
                 ->whereMonth('created_at', $bulan->month)
                 ->sum('total');
         }
 
-        // Statistik ringkasan
-        $totalPendapatan   = Transaksi::where('status_transaksi', 'paid')->sum('total');
-        $pendapatanBulanIni = Transaksi::where('status_transaksi', 'paid')
+        // Statistik ringkasan pendapatan
+        $totalPendapatan   = Transaksi::whereIn('status_transaksi', ['paid', 'Paid'])->sum('total');
+        $pendapatanBulanIni = Transaksi::whereIn('status_transaksi', ['paid', 'Paid'])
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->sum('total');
-        $totalTransaksi    = Transaksi::where('status_transaksi', 'paid')->count();
+        $totalTransaksi    = Transaksi::whereIn('status_transaksi', ['paid', 'Paid'])->count();
 
-        // Tabel transaksi dengan filter
-        $query = Transaksi::with(['user', 'kamar.kos'])
-            ->latest();
+        // Tabel transaksi dengan filter fleksibel
+        $query = Transaksi::with(['user', 'kamar.kos'])->latest();
 
         if ($request->filled('status')) {
-            $query->where('status_transaksi', $request->status);
+            $query->where('status_transaksi', 'LIKE', $request->status);
         }
+        
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            if (strtolower($request->type) === 'dp') {
+                $query->where(function($q) {
+                    $q->where('type', 'DP')->orWhere('type', 'DP Booking');
+                });
+            } else {
+                $query->where('type', 'LIKE', $request->type);
+            }
         }
+        
         if ($request->filled('bulan')) {
             $query->whereMonth('created_at', $request->bulan)
                   ->whereYear('created_at', now()->year);
@@ -50,9 +57,13 @@ class KeuanganController extends Controller
         $transaksi = $query->paginate(15)->withQueryString();
 
         // Pendapatan per cabang untuk grafik donut
-        $pendapatanPerCabang = Kos::withSum(['transaksi as total_pendapatan' => function ($q) {
-                $q->where('status_transaksi', 'paid');
-            }], 'total')
+        $pendapatanPerCabang = Kos::withSum(['kamars as total_pendapatan' => function ($q) {
+                // Catatan: Model Kos berelasi ke Kamar, Kamar berelasi ke Transaksi
+                // Menggunakan subquery relasi melintasi kamars
+                $q->whereHas('transaksis', function($sub) {
+                    $sub->whereIn('status_transaksi', ['paid', 'Paid']);
+                })->join('transaksis', 'kamars.id', '=', 'transaksis.kamar_id');
+            }], 'transaksis.total')
             ->get()
             ->map(fn($k) => [
                 'nama'  => $k->nama,

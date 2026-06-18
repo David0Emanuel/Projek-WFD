@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use App\Models\Kos;
+use Illuminate\Support\Facades\Auth;
 class KosController extends Controller
 {
     public function index()

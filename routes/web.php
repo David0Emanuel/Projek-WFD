@@ -12,6 +12,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Transaksi;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SuperAdmin\DashboardController;
+use App\Http\Controllers\SuperAdmin\CabangController;
+use App\Http\Controllers\SuperAdmin\PenghuniController;
+use App\Http\Controllers\SuperAdmin\KeuanganController;
 
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
@@ -21,33 +25,71 @@ Route::post('/daftar-cabang/booking', [VisitorController::class, 'storeBooking']
 
 Route::get('/daftar-cabang/{id}', [VisitorController::class, 'show'])->name('visitor.branch.show');
 
-// --- AUTH ROUTES (DIBUKA SEMENTARA) ---
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
+// // --- AUTH ROUTES (DIBUKA SEMENTARA) ---
+// Route::get('/login', function () {
+//     return view('auth.login');
+// })->name('login');
 
-Route::post('/login', function () {
-    return redirect()->back();
+// Route::post('/login', function () {
+//     return redirect()->back();
+// });
+
+// Route::get('/register', function () {
+//     return view('auth.register');
+// })->name('register');
+
+// Route::post('/register', function () {
+//     return redirect()->back();
+// });
+
+// Route::post('/logout', function () {
+//     return redirect()->route('home');
+// })->name('logout');
+// 0-----------------------------------------------------
+
+
+
+/// - NYALAIN INI DULU KALAU MAU NYOBA LOGIN/REGISTER, SUPERADMIN. DAN JANGAN LUPA MATIKAN,
+///KODE LINE 28 - 48 DAN 144 -150, SERTA KODE YANG ADA TULISAN BAWAAN DAVID!!!
+//--- AUTH ROUTES ---
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// =====================================================================
+// --- RUTE OPERASIONAL SUPER ADMIN (TERHUBUNG KE DATABASE) ---
+// =====================================================================
+Route::prefix('superadmin')->name('superadmin.')->group(function () {
+    
+    // Dasbor Utama
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/survey/{id}/status', [DashboardController::class, 'updateSurveyStatus'])->name('survey.status');
+
+    Route::post('/pengumuman', [DashboardController::class, 'storePengumuman'])->name('pengumuman.store');
+
+    // Manajemen Cabang (CRUD Resmi)
+    Route::get('/cabang', [CabangController::class, 'index'])->name('cabang.index');
+    Route::post('/cabang', [CabangController::class, 'store'])->name('cabang.store');
+    Route::put('/cabang/{cabang}', [CabangController::class, 'update'])->name('cabang.update');
+    Route::delete('/cabang/{cabang}', [CabangController::class, 'destroy'])->name('cabang.destroy');
+
+    // Data Penghuni
+    Route::get('/penghuni', [PenghuniController::class, 'index'])->name('penghuni.index');
+    Route::get('/penghuni/{id}', [PenghuniController::class, 'show'])->name('penghuni.show');
+
+    // Laporan Keuangan
+    Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
+
+    // Pengaturan Global
+    Route::get('/pengaturan', function () {
+        return view('superadmin.pengaturan.index');
+    })->name('pengaturan.index');
+
+
 });
-
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
-
-Route::post('/register', function () {
-    return redirect()->back();
-});
-
-Route::post('/logout', function () {
-    return redirect()->route('home');
-})->name('logout');
-
-// --- AUTH ROUTES ---
-// Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-// Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
-// Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-// Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
-// Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+//---------------------------------------------------------------------------------------------------
 
 
 
@@ -102,12 +144,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/kamar/kosong', [KamarController::class, 'markAsKosong'])->name('kamar.kosong');
 });
 
-// 4. SUPER ADMIN
-Route::prefix('superadmin')->name('superadmin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('superadmin.dashboard'); 
-    })->name('dashboard');
-});
+
+//BACAAAA
+//Kalau  mau nyoba super admin matiin matiin dulu yang bawah ini, trs baru login / daftar akun dulu
+// // 4. SUPER ADMIN
+// Route::prefix('superadmin')->name('superadmin.')->group(function () {
+//     Route::get('/dashboard', function () {
+//         return view('superadmin.dashboard'); 
+//     })->name('dashboard');
+// });
 
 
 // --- TRANSAKSI ROUTES (MIDDLEWARE DIMATIKAN SEMENTARA) ---
@@ -250,6 +295,12 @@ Route::prefix('test-superadmin')->name('superadmin.')->group(function () {
     Route::get('/pengaturan', function () {
         return view('superadmin.pengaturan.index');
     })->name('pengaturan.index');
+
+// --- TRANSAKSI & WEBHOOK GLOBAL ---
+Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
+Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
+Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
+Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout');
 
 Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
