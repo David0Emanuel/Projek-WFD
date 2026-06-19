@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class TransaksiController extends Controller
 {
@@ -29,40 +30,50 @@ class TransaksiController extends Controller
     public function storeBulanan(Request $request)
 {
     try {
-        // 1. Validasi
-        $validator = \Validator::make($request->all(), [
-            'kamar_id'      => 'required|exists:kamars,id',
-            'user_id'       => 'required|exists:users,id',
-            'angka_meteran' => 'required|numeric',
-            'total'         => 'required|numeric',
-            'foto_meteran'  => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+            // 1. Validasi Manual (Agar bisa mengirim pesan error JSON ke Javascript)
+            $validator = Validator::make($request->all(), [
+                'kamar_id'      => 'required|exists:kamars,id',
+                'user_id'       => 'required|exists:users,id',
+                'angka_meteran' => 'required|numeric',
+                'total'         => 'required|numeric',
+                'foto_meteran'  => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error', 
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // 2. Upload Foto ke folder storage/app/public/meteran
+            $path = $request->file('foto_meteran')->store('meteran', 'public');
+
+            // 3. Simpan ke database
+            Transaksi::create([
+                'kamar_id'         => $request->kamar_id,
+                'user_id'          => $request->user_id,
+                'angka_meteran'    => $request->angka_meteran,
+                'total'            => $request->total,
+                'foto_meteran'     => $path,
+                'status_transaksi' => 'Unpaid',
+                'type'             => 'Bulanan',
+                'expired_at'       => Carbon::now()->addDays(3), // Jatuh tempo 3 hari
+            ]);
+
+            // 4. Return respon JSON Sukses
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Data berhasil disimpan'
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Jika ada error sistem database
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
         }
-
-        // 2. Upload Foto
-        $path = $request->file('foto_meteran')->store('meteran', 'public');
-
-        // 3. Simpan
-        Transaksi::create([
-            'kamar_id'         => $request->kamar_id,
-            'user_id'          => $request->user_id,
-            'angka_meteran'    => $request->angka_meteran,
-            'total'            => $request->total,
-            'foto_meteran'     => $path,
-            'status_transaksi' => 'Unpaid',
-            'type'             => 'Bulanan',
-            'expired_at'       => Carbon::now()->addDays(3),
-        ]);
-
-        return response()->json(['status' => 'success', 'message' => 'Data berhasil disimpan']);
-
-    } catch (\Exception $e) {
-        // Jika ada error sistem (database/server), kirim pesan error
-        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
-    }
 }
 
     /**

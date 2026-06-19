@@ -6,7 +6,6 @@
 @section('content')
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <!-- Kolom Kiri: Riwayat Transaksi -->
     <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
         <div class="bg-gray-50 border-b border-gray-200 px-5 py-4">
             <h3 class="text-sm font-bold text-gray-700">Riwayat Transaksi</h3>
@@ -18,83 +17,91 @@
                         <tr class="border-b-2 border-gray-200 bg-gray-50 text-gray-600 font-bold">
                             <th class="py-3 px-4">No Invoice</th>
                             <th class="py-3 px-4">Tipe Tagihan</th>
-                            <th class="py-3 px-4">Tanggal Bayar</th>
+                            <th class="py-3 px-4">Tanggal</th>
                             <th class="py-3 px-4">Total</th>
                             <th class="py-3 px-4">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-150">
-                        <tr onclick="openInvoiceReviewModal('INV/2026/01', '18/01/2026', 'Rp 99.999.999', '1050 kWh', '1250 kWh', '200 kWh')" class="hover:bg-gray-50 text-gray-700 cursor-pointer">
-                            <td class="py-4 px-4 font-semibold">INV/2026/01</td>
-                            <td class="py-4 px-4">Sewa + Listrik</td>
-                            <td class="py-4 px-4 text-gray-500">18/01/2026</td>
-                            <td class="py-4 px-4 font-bold">Rp 99.999.999</td>
-                            <td class="py-4 px-4"><span class="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-[10px]">Lunas</span></td>
+                        
+                        {{-- LOOPING DATA TRANSAKSI DARI DATABASE --}}
+                        @forelse($riwayat_transaksi as $riwayat)
+                        <tr class="hover:bg-gray-50 text-gray-700">
+                            {{-- Generate Nomor Invoice Otomatis --}}
+                            <td class="py-4 px-4 font-semibold">INV/{{ $riwayat->created_at->format('Y/m') }}/{{ str_pad($riwayat->id, 3, '0', STR_PAD_LEFT) }}</td>
+                            <td class="py-4 px-4">{{ $riwayat->type }}</td>
+                            <td class="py-4 px-4 text-gray-500">{{ $riwayat->created_at->format('d/m/Y') }}</td>
+                            <td class="py-4 px-4 font-bold">Rp {{ number_format($riwayat->total, 0, ',', '.') }}</td>
+                            <td class="py-4 px-4">
+                                @if(strtolower($riwayat->status_transaksi) === 'paid' || strtolower($riwayat->status_transaksi) === 'settlement')
+                                    <span class="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-[10px]">Lunas</span>
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-bold text-[10px]">Belum Bayar</span>
+                                @endif
+                            </td>
                         </tr>
-                        <tr onclick="openInvoiceReviewModal('INV/2026/02', '18/02/2026', 'Rp 99.999.999', '1100 kWh', '1310 kWh', '210 kWh')" class="hover:bg-gray-50 text-gray-700 cursor-pointer">
-                            <td class="py-4 px-4 font-semibold">INV/2026/02</td>
-                            <td class="py-4 px-4">Sewa + Listrik</td>
-                            <td class="py-4 px-4 text-gray-500">18/02/2026</td>
-                            <td class="py-4 px-4 font-bold">Rp 99.999.999</td>
-                            <td class="py-4 px-4"><span class="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-[10px]">Lunas</span></td>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-gray-400">Belum ada riwayat transaksi.</td>
                         </tr>
-                        <tr onclick="openInvoiceReviewModal('INV/2026/03', '18/03/2026', 'Rp 99.999.999', '1200 kWh', '1400 kWh', '200 kWh')" class="hover:bg-gray-50 text-gray-700 cursor-pointer">
-                            <td class="py-4 px-4 font-semibold">INV/2026/03</td>
-                            <td class="py-4 px-4">Sewa + Listrik</td>
-                            <td class="py-4 px-4 text-gray-500">18/03/2026</td>
-                            <td class="py-4 px-4 font-bold">Rp 99.999.999</td>
-                            <td class="py-4 px-4"><span class="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-[10px]">Lunas</span></td>
-                        </tr>
+                        @endforelse
+                        
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Kolom Kanan: Tagihan Mendatang -->
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
         <div class="bg-gray-50 border-b border-gray-200 px-5 py-4">
-            <h3 class="text-sm font-bold text-gray-700">Tagihan Mendatang</h3>
-            <p class="text-[10px] text-gray-400 font-bold mt-0.5">INV/2026/04</p>
+            <h3 class="text-sm font-bold text-gray-700">Tagihan Aktif</h3>
+            @if($tagihan_aktif)
+                <p class="text-[10px] text-gray-400 font-bold mt-0.5">INV/{{ $tagihan_aktif->created_at->format('Y/m') }}/{{ str_pad($tagihan_aktif->id, 3, '0', STR_PAD_LEFT) }}</p>
+            @endif
         </div>
+        
         <div class="p-5 flex-1 flex flex-col justify-between">
-            <div>
-                <!-- Box Foto Meteran Listrik -->
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 mb-4 text-center">
-                    <p class="text-xs font-bold text-gray-600 mb-2">Foto Meteran Listrik</p>
-                    <div class="w-full h-44 rounded border border-gray-300 overflow-hidden bg-gray-250 flex items-center justify-center">
-                        <img src="{{ asset('meteran.png') }}" alt="Meteran Listrik" class="w-full h-full object-cover">
+            @if($tagihan_aktif)
+                <div>
+                    @if($tagihan_aktif->foto_meteran)
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 mb-4 text-center">
+                        <p class="text-xs font-bold text-gray-600 mb-2">Foto Bukti Meteran</p>
+                        <div class="w-full h-44 rounded border border-gray-300 overflow-hidden bg-gray-250 flex items-center justify-center">
+                            {{-- Tampilkan foto meteran asli dari storage --}}
+                            <img src="{{ asset('storage/' . $tagihan_aktif->foto_meteran) }}" alt="Meteran Listrik" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg text-center mb-4">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase">Angka Meteran Listrik Saat Ini</p>
+                        <p class="text-sm font-bold text-gray-800">{{ $tagihan_aktif->angka_meteran ?? '0' }} kWh</p>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center mb-4">
+                        <p class="text-[10px] font-bold text-blue-400 uppercase">Total Tagihan (Sewa + Listrik)</p>
+                        <p class="text-2xl font-black text-blue-800 mt-1">Rp {{ number_format($tagihan_aktif->total, 0, ',', '.') }}</p>
+                        <p class="text-xs text-blue-500 mt-1">Jatuh Tempo: {{ \Carbon\Carbon::parse($tagihan_aktif->expired_at)->format('d M Y') }}</p>
                     </div>
                 </div>
 
-                <!-- Detail Angka Meteran -->
-                <div class="grid grid-cols-2 gap-4 text-center mb-4">
-                    <div class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase">Meteran Awal</p>
-                        <p class="text-sm font-bold text-gray-800">1250 kWh</p>
-                    </div>
-                    <div class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase">Meteran Akhir</p>
-                        <p class="text-sm font-bold text-gray-800">1450 kWh</p>
-                    </div>
+                <div>
+                    <a href="{{ route('pembayaran.checkout', $tagihan_aktif->id) }}" 
+                        class="block text-center w-full py-3 bg-green-500 hover:bg-green-600 border border-green-600 rounded-lg font-bold text-sm text-white transition-colors">
+                        Bayar Sekarang
+                    </a>
                 </div>
-
-                <!-- Info Perhitungan Pemakaian -->
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center mb-4">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase">Konsumsi Pemakaian</p>
-                    <p class="text-xs text-gray-500 my-0.5">Selisih: 200 kWh x Rp 1.500/kWh</p>
-                    <p class="text-base font-black text-gray-800">Rp 99.999.999</p>
+            @else
+                <div class="flex-1 flex flex-col items-center justify-center text-center">
+                    <div class="rounded-full bg-green-100 p-3 mb-3 text-green-600">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-sm font-bold text-gray-800">Hore! Tidak Ada Tagihan</p>
+                    <p class="text-xs text-gray-500 mt-1">Semua tagihan Anda sudah lunas terbayar.</p>
                 </div>
-            </div>
-
-            <!-- Tombol Bayar Tagihan Mendatang -->
-            <div>
-                <!-- KODE BARU (Tersambung ke Midtrans) -->
-                <a href="{{ route('pembayaran.checkout', $transaksi?->id) }}" 
-                    class="block text-center w-full py-3 bg-green-500 hover:bg-green-600 border border-green-600 rounded-lg font-bold text-sm text-white transition-colors">
-                    Bayar Via Payment Gateway
-                </a>
-            </div>
+            @endif
         </div>
     </div>
 

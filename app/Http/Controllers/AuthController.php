@@ -40,6 +40,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role'     => 'visitor',
         ]);
+
+
+        Auth::login($user);
+
+        return redirect()->route('home')->with('success', 'Registrasi berhasil! Selamat datang di KosInAja.');
     }
     // Proses Unified Login
     public function processLogin(Request $request)
