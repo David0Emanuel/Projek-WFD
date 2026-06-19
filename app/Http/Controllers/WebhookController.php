@@ -95,38 +95,33 @@ class WebhookController extends Controller
         return response()->json(['message' => 'Webhook berhasil diproses']);
     }
 
-    private function sendWhatsAppNotification($transaksi){
-        $token = env('FONNTE_TOKEN');
-        $noWa = $transaksi->user->no_wa;
-        // Mengganti angka 0 di depan dengan 62
-        $target = (substr($noWa, 0, 1) == '0') ? '62' . substr($noWa, 1) : $noWa; // Pastikan nomor WA user tersimpan di DB
-
-        // Teks dinamis: Beda tipe tagihan, beda teks WA-nya!
-        if (strtoupper($transaksi->type) == 'DP') {
-            $message = "Selamat! Pembayaran DP Booking kamar Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " BERHASIL. Akun Anda kini resmi ditingkatkan menjadi Tenant di KosInAja.";
-        } else {
-            $message = "Halo {$transaksi->user->nama}, pembayaran Anda untuk tagihan {$transaksi->type} sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah BERHASIL diterima. Terima kasih!";
-        }
 
 
-        // Http::withOptions([
-        //     'curl' => [
-        //         CURLOPT_CAINFO => 'C:/laragon/etc/ssl/cacert.pem',
-        //     ]
-        // ])->withHeaders([
-        //     'Authorization' => $token
-        // ])->post('https://api.fonnte.com/send', [
-        //     'target' => $target,
-        //     'message' => $message,
-        // ]);
+    private function sendWhatsAppNotification($transaksi)
+{
+    Log::info("Fungsi sendWhatsAppNotification dipanggil untuk user: " . $transaksi->user->nama);
 
+    $token = env('FONNTE_TOKEN');
+    // $token = '5Q8u4zX4P2FWj1BerPGV';
+    $noWa = $transaksi->user->no_wa;
+    $target = (substr($noWa, 0, 1) == '0') ? '62' . substr($noWa, 1) : $noWa;
 
+    // 1. Definisikan nilai default agar tidak error 'Undefined variable'
+    $message = "Halo, pembayaran Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah berhasil diterima.";
 
-        Http::withHeaders([
-    'Authorization' => env('FONNTE_TOKEN')
-])->post('https://api.fonnte.com/send', [
-    'target' => $target,
-    'message' => $message,
-]);
+    // 2. Timpa dengan pesan khusus jika kondisinya terpenuhi
+    if (strtoupper($transaksi->type) == 'DP' || strtoupper($transaksi->type) == 'DP BOOKING') {
+        $message = "Selamat! Pembayaran DP Booking kamar Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " BERHASIL. Akun Anda kini resmi ditingkatkan menjadi Tenant di KosInAja.";
+    } elseif (strtoupper($transaksi->type) == 'BULANAN') {
+        $message = "Halo {$transaksi->user->nama}, pembayaran tagihan {$transaksi->type} sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah BERHASIL diterima.";
     }
+
+    // 3. Kirim Pesan
+    Http::withoutVerifying()->withHeaders([
+        'Authorization' => $token
+    ])->post('https://api.fonnte.com/send', [
+        'target' => $target,
+        'message' => $message,
+    ]);
+}
 }
