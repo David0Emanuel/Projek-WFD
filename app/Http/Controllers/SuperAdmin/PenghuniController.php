@@ -25,4 +25,5 @@ class PenghuniController extends Controller
 
         return view('superadmin.penghuni.show', compact('penghuni'));
     }
+    
 }
