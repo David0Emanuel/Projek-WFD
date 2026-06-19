@@ -3,7 +3,7 @@
 
     <!-- Logo -->
     <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-        <h1 class="text-lg font-bold text-black     ">Kos<span class="text-blue-500">In</span>Aja</h1>
+        <a href="{{ route('tenant.dashboard') }}" class="text-lg font-bold text-black hover:text-blue-500 transition-colors">Kos<span class="text-blue-500">In</span>Aja</a>
         <!-- Tombol tutup sidebar (mobile) -->
         <button type="button" onclick="toggleSidebar()" class="p-1 text-gray-400 hover:text-gray-600 lg:hidden">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -46,12 +46,14 @@
 
     <!-- Logout -->
     <div class="mt-auto border-t border-gray-200 p-3">
-        <a href="#" id="nav-logout"
-           class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-            </svg>
-            Logout
-        </a>
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+                Logout
+            </button>
+        </form>
     </div>
 </div>
