@@ -1,187 +1,87 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Models\Kos;
-use Illuminate\Http\Request;
+
+// --- Controllers ---
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\MaintenanceTicketController;
 use App\Http\Controllers\KamarController;
-use Illuminate\Pagination\LengthAwarePaginator;
-use App\Models\Transaksi;
-use App\Http\Controllers\WebhookController;
-use App\Http\Controllers\AuthController;
+
+// --- Super Admin Controllers ---
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\CabangController;
 use App\Http\Controllers\SuperAdmin\PenghuniController;
 use App\Http\Controllers\SuperAdmin\KeuanganController;
 
+// Models (Hanya untuk keperluan rute Tenant sementara)
+use App\Models\Transaksi;
+
+
+// =====================================================================
+// 1. VISITOR ROUTES (PUBLIC)
+// =====================================================================
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
-
 Route::post('/daftar-cabang/survey', [VisitorController::class, 'storeSurvey'])->name('visitor.survey.store');
 Route::post('/daftar-cabang/booking', [VisitorController::class, 'storeBooking'])->name('visitor.booking.store');
-
 Route::get('/daftar-cabang/{id}', [VisitorController::class, 'show'])->name('visitor.branch.show');
 
-// // --- AUTH ROUTES (DIBUKA SEMENTARA) ---
-Route::get('/login', function () {
-    return view('auth.login'); // Sesuaikan dengan nama folder view login kalian
-})->name('login');
-
-Route::post('/login', function (Request $request) {
-    // 1. Validasi input form
-    $credentials = $request->validate([
-        'username' => 'required',
-        'password' => 'required',
-    ]);
-
-    // 2. Cek kecocokan di database
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate();
-
-        // 3. Unified Login Redirect (Arahkan sesuai Role)
-        $role = Auth::user()->role;
-        
-        if ($role === 'super_admin') {
-            return redirect()->route('superadmin.dashboard');
-        } elseif ($role === 'admin_cabang') {
-            return redirect()->route('admin.dashboard');
-        } elseif ($role === 'tenant') {
-            return redirect()->route('tenant.dashboard');
-        } else {
-            // Jika role-nya visitor
-            return redirect()->route('home');
-        }
-    }
-
-    // 4. Jika password/username salah, kembalikan ke login dengan pesan error
-    return back()->withErrors([
-        'username' => 'Username atau password salah.',
-    ])->onlyInput('username');
-});
-
-Route::post('/logout', function () {
-    Auth::logout();
-    return redirect()->route('home');
-})->name('logout');
-
-Route::get('/register', function () {
-    return view('auth.register'); // Sesuaikan dengan folder view register kalian
-})->name('register');
-
-Route::post('/register', function (Request $request) {
-    // 1. Validasi input pendaftaran
-    $request->validate([
-        'username' => 'required|unique:users,username|max:255',
-        'no_wa'    => 'required|max:20',
-        'password' => 'required|min:6',
-    ]);
-
-    // 2. Buat user baru (Default role: visitor)
-    $user = User::create([
-        'username' => $request->username,
-        'no_wa'    => $request->no_wa,
-        'password' => Hash::make($request->password), // Password wajib di-hash
-        'role'     => 'visitor',
-    ]);
-
-    // 3. Langsung loginkan user setelah mendaftar
-    Auth::login($user);
-
-    // 4. Arahkan ke landing page
-    return redirect()->route('home');
-});
-
-/// - NYALAIN INI DULU KALAU MAU NYOBA LOGIN/REGISTER, SUPERADMIN. DAN JANGAN LUPA MATIKAN,
-///KODE LINE 28 - 48 DAN 144 -150, SERTA KODE YANG ADA TULISAN BAWAAN DAVID!!!
-//--- AUTH ROUTES ---
-// Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-// Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
-// Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-// Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
-// Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-// // =====================================================================
-// // --- RUTE OPERASIONAL SUPER ADMIN (TERHUBUNG KE DATABASE) ---
-// // =====================================================================
-// Route::prefix('superadmin')->name('superadmin.')->group(function () {
-    
-//     // Dasbor Utama
-//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-//     Route::post('/survey/{id}/status', [DashboardController::class, 'updateSurveyStatus'])->name('survey.status');
-
-//     Route::post('/pengumuman', [DashboardController::class, 'storePengumuman'])->name('pengumuman.store');
-
-//     // Manajemen Cabang (CRUD Resmi)
-//     Route::get('/cabang', [CabangController::class, 'index'])->name('cabang.index');
-//     Route::post('/cabang', [CabangController::class, 'store'])->name('cabang.store');
-//     Route::put('/cabang/{cabang}', [CabangController::class, 'update'])->name('cabang.update');
-//     Route::delete('/cabang/{cabang}', [CabangController::class, 'destroy'])->name('cabang.destroy');
-
-//     // Data Penghuni
-//     Route::get('/penghuni', [PenghuniController::class, 'index'])->name('penghuni.index');
-//     Route::get('/penghuni/{id}', [PenghuniController::class, 'show'])->name('penghuni.show');
-
-//     // Laporan Keuangan
-//     Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
-
-//     // Pengaturan Global
-//     Route::get('/pengaturan', function () {
-//         return view('superadmin.pengaturan.index');
-//     })->name('pengaturan.index');
-
-
-// });
-//---------------------------------------------------------------------------------------------------
-
-
-
-
-// =====================================================================
-// --- PROTECTED ROUTES (SEMUA MIDDLEWARE/KUNCI DIMATIKAN SEMENTARA) ---
-// =====================================================================
-
-// 1. VISITOR
 Route::prefix('visitor')->name('visitor.')->group(function () {
     Route::get('/profile', [VisitorController::class, 'profile'])->name('profile');
 });
 
-// 2. TENANT
-Route::prefix('tenant')->name('tenant.')->group(function () {
-    Route::get('/dashboard', function () {
-        
-       $transaksi = Transaksi::where('type', 'Bulanan')->latest()->first();
 
-        return view('tenant.dashboard', compact('transaksi'));
-    })->name('dashboard');
+// =====================================================================
+// 2. AUTHENTICATION ROUTES (TERHUBUNG DATABASE)
+// =====================================================================
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // 👇 Rute invoice ditambahkan di sini agar sidebar milik David tidak error 👇
-    Route::get('/invoice', function () {
 
-       $transaksi = Transaksi::where('type', 'Bulanan')->latest()->first();
-        return view('tenant.invoice', compact('transaksi'));
+// =====================================================================
+// 3. SUPER ADMIN ROUTES (TANPA MIDDLEWARE SEMENTARA)
+// =====================================================================
+Route::prefix('superadmin')->name('superadmin.')->group(function () {
+    
+    // Dasbor Utama & Pengumuman
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/survey/{id}/status', [DashboardController::class, 'updateSurveyStatus'])->name('survey.status');
+    Route::post('/pengumuman', [DashboardController::class, 'storePengumuman'])->name('pengumuman.store');
 
-    })->name('invoice');
+    // Manajemen Cabang (CRUD Resmi)
+    Route::get('/cabang', [CabangController::class, 'index'])->name('cabang.index');
+    Route::post('/cabang', [CabangController::class, 'store'])->name('cabang.store');
+    Route::put('/cabang/{cabang}', [CabangController::class, 'update'])->name('cabang.update');
+    Route::delete('/cabang/{cabang}', [CabangController::class, 'destroy'])->name('cabang.destroy');
 
-    Route::get('/maintenance', [MaintenanceTicketController::class, 'index'])->name('maintenance');
-    Route::post('/maintenance', [MaintenanceTicketController::class, 'store'])->name('maintenance.store');
+    // Data Penghuni
+    Route::get('/penghuni', [PenghuniController::class, 'index'])->name('penghuni.index');
+    Route::get('/penghuni/{id}', [PenghuniController::class, 'show'])->name('penghuni.show');
+
+    // Laporan Keuangan
+    Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
+
+    // Pengaturan Global
+    Route::get('/pengaturan', function () {
+        return view('superadmin.pengaturan.index');
+    })->name('pengaturan.index');
 });
 
-// 3. ADMIN CABANG
+
+// =====================================================================
+// 4. ADMIN CABANG ROUTES (TANPA MIDDLEWARE SEMENTARA)
+// =====================================================================
 Route::prefix('admin')->name('admin.')->group(function () {
-    
-    // 1. Dashboard / Ringkasan
     Route::get('/dashboard', [KamarController::class, 'index'])->name('dashboard');
-
-    // 2. Manajemen Kamar & Meteran
     Route::get('/kamar', [KamarController::class, 'kamar'])->name('kamar');
-
-    // 3. Survey & Check-In
     Route::get('/survey', [KamarController::class, 'survey'])->name('survey');
-
-    // 4. Komplain / Maintenance
     Route::get('/komplain', [KamarController::class, 'komplain'])->name('komplain');
 
     Route::post('/kamar/meteran', [KamarController::class, 'storeMeteran'])->name('kamar.meteran');
@@ -191,164 +91,64 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 
-//BACAAAA
-//Kalau  mau nyoba super admin matiin matiin dulu yang bawah ini, trs baru login / daftar akun dulu
-// // 4. SUPER ADMIN
-Route::prefix('superadmin')->name('superadmin.')->group(function () {
+// =====================================================================
+// 5. TENANT ROUTES (TANPA MIDDLEWARE SEMENTARA)
+// =====================================================================
+Route::prefix('tenant')->name('tenant.')->group(function () {
+    // Rute Dashboard Utama Tenant
     Route::get('/dashboard', function () {
-        return view('superadmin.dashboard'); 
+        $user = auth()->user();
+
+        // 1. Ambil 1 tagihan terbaru yang belum dibayar
+        $transaksi = \App\Models\Transaksi::where('user_id', $user->id)
+                        ->where('status_transaksi', 'Unpaid')
+                        ->latest()
+                        ->first();
+        
+        // 2. Cek lokasi cabang (kos_id) tenant saat ini
+        $kosId = $user->kamar ? $user->kamar->kos_id : $user->kos_id;
+
+        // 3. Ambil pengumuman (Gabungan Pengumuman Global & Pengumuman Cabang)
+        $pengumumans = \App\Models\Pengumuman::whereNull('kos_id')
+                        ->when($kosId, function($query) use ($kosId) {
+                            $query->orWhere('kos_id', $kosId);
+                        })
+                        ->latest()
+                        ->take(5) // Ambil 5 pengumuman terbaru
+                        ->get();
+        
+        return view('tenant.dashboard', compact('transaksi', 'pengumumans'));
     })->name('dashboard');
+
+    // Rute Halaman Invoice & Riwayat Tagihan
+    Route::get('/invoice', function () {
+        // Ambil Tagihan Aktif (Belum Lunas) untuk kolom kanan
+        $tagihan_aktif = Transaksi::where('user_id', auth()->id())
+                            ->where('status_transaksi', 'Unpaid')
+                            ->latest()
+                            ->first();
+
+        // Ambil SELURUH riwayat transaksi (Lunas & Belum Lunas) untuk tabel kiri
+        $riwayat_transaksi = Transaksi::where('user_id', auth()->id())
+                            ->latest()
+                            ->get();
+
+        return view('tenant.invoice', compact('tagihan_aktif', 'riwayat_transaksi'));
+    })->name('invoice');
+
+    Route::get('/maintenance', [App\Http\Controllers\MaintenanceTicketController::class, 'index'])->name('maintenance');
+    Route::post('/maintenance', [App\Http\Controllers\MaintenanceTicketController::class, 'store'])->name('maintenance.store');
 });
 
 
-// --- TRANSAKSI ROUTES (MIDDLEWARE DIMATIKAN SEMENTARA) ---
-// Route untuk melihat daftar transaksi
-Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
-
-// Route untuk submit form tagihan bulanan + upload meteran (Oleh Admin)
-Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
-
-// Route untuk submit form booking DP (Oleh Visitor)
-Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
-
-Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout');
-
-
 // =====================================================================
-// ===== PREVIEW SUPERADMIN TANPA LOGIN (BAWAAN DAVID) =====
+// 6. TRANSAKSI & WEBHOOK GLOBAL
 // =====================================================================
-Route::prefix('test-superadmin')->name('superadmin.')->group(function () {
-
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('superadmin.dashboard');
-    })->name('dashboard');
-
-    // tambah cabang baru
-    Route::post('/cabang', function (Request $request) {
-        // 1. Validasi input
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'alamat' => 'required|string',
-        ]);
-
-        // 2. Simpan ke database
-        Kos::create([
-            'nama' => $request->nama,
-            'alamat' => $request->alamat,
-        ]);
-
-        // 3. Kembalikan ke halaman sebelumnya dengan pesan sukses
-        return redirect()->back()->with('success', 'Cabang baru berhasil ditambahkan ke dalam sistem.');
-    })->name('cabang.store');
-
-    // menampilkan daftar cabang
-    Route::get('/cabang', function () {
-        
-        $cabang = Kos::withCount([
-            'kamars',
-            
-            'kamars as kamar_kosong_count' => function ($query) {
-                $query->where('status', 'Kosong');
-            },
-            
-            'kamars as kamar_terisi_count' => function ($query) {
-                $query->whereIn('status', ['Terisi', 'Booking']); 
-            }
-        ])
-        ->orderBy('created_at', 'desc') // Mengurutkan dari yang terbaru
-        ->paginate(10); // Menampilkan 10 data per halaman
-
-        return view('superadmin.cabang.index', compact('cabang'));
-        
-    })->name('cabang.index');
-
-    // edit cabang
-    Route::put('/cabang/{id}', function ($id) {
-        return redirect()->back()->with('success', 'Preview: Cabang berhasil diupdate');
-    })->name('cabang.update');
-
-    // hapus cabang
-    Route::delete('/cabang/{id}', function ($id) {
-        return redirect()->back()->with('success', 'Preview: Cabang berhasil dihapus');
-    })->name('cabang.destroy');
-
-    // ================= PENGHUNI =================
-    Route::get('/penghuni', function () {
-        $data = collect([
-            (object)[
-                'nama' => 'Willy',
-                'no_wa' => '08123456789',
-                'tanggal_selesaiSewa' => now()->addDays(10),
-                'kamar' => (object)[
-                    'nomor' => 'A01',
-                    'kos' => (object)[
-                        'nama' => 'PuluBoys Siwalankerto'
-                    ]
-                ]
-            ]
-        ]);
-
-        $penghuni = new LengthAwarePaginator($data, 1, 10);
-        return view('superadmin.penghuni.index', compact('penghuni'));
-    })->name('penghuni.index');
-
-    // ================= KEUANGAN =================
-    Route::get('/keuangan', function () {
-        $totalPendapatan = 50000000;
-        $pendapatanBulanIni = 8500000;
-        $totalTransaksi = 120;
-
-        $transaksi = new LengthAwarePaginator(
-            collect([
-                (object)[
-                    'id' => 1,
-                    'created_at' => now(),
-                    'type' => 'dp',
-                    'total' => 500000,
-                    'status_transaksi' => 'paid',
-                    'user' => (object)[
-                        'nama' => 'Budi'
-                    ],
-                    'kamar' => (object)[
-                        'nomor' => 'A01',
-                        'kos' => (object)[
-                            'nama' => 'PuluBoys Siwalankerto'
-                        ]
-                    ]
-                ]
-            ]),
-            1,
-            10
-        );
-
-        $bulanLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-        $bulanData = [5000000, 7000000, 6000000, 8000000, 9000000, 10000000];
-
-        $pendapatanPerCabang = [
-            (object)['nama' => 'Siwalankerto', 'total' => 25000000],
-            (object)['nama' => 'Ketintang', 'total' => 15000000]
-        ];
-
-        return view('superadmin.keuangan.index', compact(
-            'totalPendapatan', 'pendapatanBulanIni', 'totalTransaksi',
-            'transaksi', 'bulanLabels', 'bulanData', 'pendapatanPerCabang'
-        ));
-    })->name('keuangan.index');
-
-
-
-    Route::get('/pengaturan', function () {
-        return view('superadmin.pengaturan.index');
-    })->name('pengaturan.index');
-
-// --- TRANSAKSI & WEBHOOK GLOBAL ---
 Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
 Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
 Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
 Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout');
 
+// Webhook untuk Midtrans Payment Gateway
 Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-    
-});

@@ -20,67 +20,33 @@
 
             <!-- Tombol Notifikasi -->
             <div class="relative">
-                <button id="notification-bell" type="button" onclick="toggleNotifications()"
-                        class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                    </svg>
-                    <!-- Badge notifikasi -->
-                    <span class="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>
-                </button>
-
-                <!-- Dropdown Notifikasi -->
-                <div id="notification-dropdown"
-                     class="absolute right-0 top-full mt-2 hidden w-72 rounded-lg border border-gray-200 bg-white shadow-lg">
-                    <div class="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
-                        <h3 class="text-sm font-bold text-gray-700">Notifikasi</h3>
-                        <span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-600">2 Baru</span>
-                    </div>
-                    <div class="divide-y divide-gray-100">
-                        <div class="px-4 py-3 hover:bg-gray-50">
-                            <p class="text-sm font-medium text-gray-700">Tagihan Jatuh Tempo</p>
-                            <p class="mt-1 text-xs text-gray-500">Tagihan bulan Juni akan jatuh tempo dalam 18 hari.</p>
-                        </div>
-                        <div class="px-4 py-3 hover:bg-gray-50">
-                            <p class="text-sm font-medium text-gray-700">Pengumuman Baru</p>
-                            <p class="mt-1 text-xs text-gray-500">Admin telah memposting pengumuman baru.</p>
-                        </div>
-                    </div>
-                    <div class="border-t border-gray-100 px-4 py-2 text-center">
-                        <a href="#" class="text-xs font-medium text-blue-600 hover:text-blue-700">Lihat Semua Notifikasi</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Profil User -->
-            <div class="relative">
                 <button type="button" id="profile-btn" onclick="toggleProfilePopup()" class="flex items-center gap-2 text-left focus:outline-none cursor-pointer">
                     <div class="hidden text-right sm:block">
-                        <p class="text-sm font-semibold text-gray-700">Nama Tenant</p>
-                        <p class="text-xs text-gray-500">Kamar No. 12</p>
+                        <p class="text-sm font-semibold text-gray-700">{{ auth()->user()->nama ?? auth()->user()->username }}</p>
+                        <p class="text-xs text-gray-500">Kamar {{ auth()->user()->kamar->nomor ?? 'Belum ada' }}</p>
                     </div>
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white hover:bg-blue-600 transition-colors">
-                        NT
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white hover:bg-blue-600 transition-colors uppercase">
+                        {{-- Mengambil 2 huruf pertama dari nama untuk ikon avatar --}}
+                        {{ substr(auth()->user()->nama ?? auth()->user()->username, 0, 2) }}
                     </div>
                 </button>
 
-                <!-- Popup Card Profile -->
                 <div id="profile-popup" class="absolute right-0 top-full mt-2 hidden w-64 rounded-lg border border-gray-200 bg-white p-4 shadow-lg z-30">
                     <div class="flex flex-col items-center text-center border-b border-gray-100 pb-3 mb-3">
-                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-base font-bold text-white mb-2">
-                            NT
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-base font-bold text-white mb-2 uppercase">
+                            {{ substr(auth()->user()->nama ?? auth()->user()->username, 0, 2) }}
                         </div>
-                        <h4 class="text-sm font-bold text-gray-800">Nama Tenant</h4>
-                        <span class="text-xs text-gray-500">Kamar No. 12</span>
+                        <h4 class="text-sm font-bold text-gray-800">{{ auth()->user()->nama ?? auth()->user()->username }}</h4>
+                        <span class="text-xs text-gray-500">Kamar {{ auth()->user()->kamar->nomor ?? '-' }}</span>
                     </div>
                     <div class="space-y-2 text-xs">
                         <div class="flex justify-between">
                             <span class="text-gray-500">Username:</span>
-                            <span class="font-medium text-gray-850">tenant12</span>
+                            <span class="font-medium text-gray-800">{{ auth()->user()->username }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">WhatsApp:</span>
-                            <span class="font-medium text-gray-850">081234567890</span>
+                            <span class="font-medium text-gray-800">{{ auth()->user()->no_wa }}</span>
                         </div>
                     </div>
                 </div>

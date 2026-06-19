@@ -17,16 +17,27 @@
 
             <div class="p-5">
                 <div class="space-y-4" id="announcement-list">
-                    <div class="rounded-lg border border-gray-100 bg-gray-50 p-4">
-                        <div class="flex items-center gap-2 mb-1">
-                            <h4 class="text-sm font-semibold text-gray-800">Jadwal Pemeliharaan Gedung</h4>
-                            <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">Info</span>
+                    {{-- LOOPING DATA PENGUMUMAN DARI DATABASE --}}
+                    @forelse($pengumumans as $pengumuman)
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 p-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="text-sm font-semibold text-gray-800">{{ $pengumuman->judul }}</h4>
+                                @if(is_null($pengumuman->kos_id))
+                                    <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Global</span>
+                                @else
+                                    <span class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Cabang Anda</span>
+                                @endif
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                {!! nl2br(e($pengumuman->isi)) !!}
+                            </p>
+                            <p class="mt-2 text-xs text-gray-400">Diposting: {{ $pengumuman->created_at->format('d M Y') }}</p>
                         </div>
-                        <p class="text-sm text-gray-600">
-                            Akan dilakukan pemeliharaan gedung pada tanggal 20-22 Juni 2025. Mohon kerjasamanya untuk menjaga kebersihan area sekitar kamar.
-                        </p>
-                        <p class="mt-2 text-xs text-gray-400">Diposting: 12 Juni 2025</p>
-                    </div>
+                    @empty
+                        <div class="text-center py-4">
+                            <p class="text-sm text-gray-500">Belum ada pengumuman saat ini.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -36,28 +47,47 @@
     <section class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
         <!-- Card: Status Masa Sewa -->
-        <div id="status-masa-sewa" class="rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div class="flex items-center gap-3 border-b border-gray-100 bg-green-50 px-5 py-3">
-                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 class="text-sm font-bold text-gray-700">Status Masa Sewa</h3>
-            </div>
+        <div class="flex flex-col items-center p-6">
+                @php
+                    $user = auth()->user();
+                    // Cek apakah admin sudah menginput tanggal selesai sewa
+                    $tanggalSelesai = $user->tanggal_selesaiSewa ? \Carbon\Carbon::parse($user->tanggal_selesaiSewa) : null;
+                    
+                    // Hitung selisih hari dari hari ini ke tanggal selesai
+                    $sisaHari = $tanggalSelesai ? (int) round(now()->diffInDays($tanggalSelesai, false)) : 0;
+                    
+                    // Tentukan warna (Merah jika sisa hari <= 5 atau sudah lewat/minus)
+                    $isWarning = $sisaHari <= 5;
+                @endphp
 
-            <div class="flex flex-col items-center p-6">
-                <!-- Angka sisa hari -->
-                <div class="mb-4 flex h-32 w-32 flex-col items-center justify-center rounded-full border-4 border-green-400 bg-green-50">
-                    <span class="text-4xl font-bold text-gray-800">18</span>
-                    <span class="text-xs text-gray-500">Sisa Hari</span>
-                </div>
+                @if($tanggalSelesai)
+                    <div class="mb-4 flex h-32 w-32 flex-col items-center justify-center rounded-full border-4 {{ $isWarning ? 'border-red-400 bg-red-50' : 'border-green-400 bg-green-50' }}">
+                        <span class="text-4xl font-bold {{ $isWarning ? 'text-red-600' : 'text-gray-800' }}">
+                            {{ $sisaHari < 0 ? 0 : $sisaHari }}
+                        </span>
+                        <span class="text-xs {{ $isWarning ? 'text-red-500' : 'text-gray-500' }}">Sisa Hari</span>
+                    </div>
 
-                <!-- Tanggal jatuh tempo -->
-                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-center">
-                    <p class="text-xs font-semibold uppercase text-green-600">Tanggal Jatuh Tempo</p>
-                    <p class="mt-1 text-base font-bold text-green-700">18 Juni 2025</p>
-                </div>
+                    <div class="rounded-lg border {{ $isWarning ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50' }} px-4 py-2 text-center">
+                        <p class="text-[10px] font-semibold uppercase {{ $isWarning ? 'text-red-600' : 'text-green-600' }}">Tanggal Jatuh Tempo</p>
+                        <p class="mt-1 text-base font-bold {{ $isWarning ? 'text-red-700' : 'text-green-700' }}">
+                            {{ $tanggalSelesai->translatedFormat('d F Y') }}
+                        </p>
+                        @if($sisaHari < 0)
+                            <p class="text-[10px] text-red-500 mt-1 font-bold">Masa Sewa Telah Habis!</p>
+                        @endif
+                    </div>
+                @else
+                    <div class="mb-4 flex h-32 w-32 flex-col items-center justify-center rounded-full border-4 border-gray-300 bg-gray-50">
+                        <span class="text-4xl font-bold text-gray-400">-</span>
+                        <span class="text-xs text-gray-500">Sisa Hari</span>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-center">
+                        <p class="text-[10px] font-semibold uppercase text-gray-500">Tanggal Jatuh Tempo</p>
+                        <p class="mt-1 text-sm font-bold text-gray-600">Belum Ditentukan</p>
+                    </div>
+                @endif
             </div>
-        </div>
 
         <!-- Card: Daftar Tagihan -->
         <div id="daftar-tagihan" class="rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -68,40 +98,51 @@
                     </svg>
                     <h3 class="text-sm font-bold text-gray-700">Daftar Tagihan</h3>
                 </div>
-                <span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">Belum Lunas</span>
+                @if($transaksi)
+                    <span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">Belum Lunas</span>
+                @else
+                    <span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">Semua Lunas</span>
+                @endif
             </div>
 
             <div class="p-5">
-                <div class="space-y-3" id="tagihan-list">
-                    <!-- Item: Biaya Sewa Bulanan -->
-                    <div class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-                        <span class="text-sm text-gray-700">Biaya Sewa Bulanan</span>
-                        <span class="text-sm font-bold text-gray-800">Rp 99.999.999</span>
+                
+                {{-- CEK APAKAH ADA TAGIHAN --}}
+                @if($transaksi)
+                    <div class="space-y-3" id="tagihan-list">
+                        <div class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                                <span class="text-sm text-gray-700">Biaya Sewa (Kamar {{ $transaksi->kamar->nomor ?? '' }})</span>
+                                <span class="text-sm font-bold text-gray-800">
+                                    Rp {{ number_format($transaksi->kamar->harga ?? 0, 0, ',', '.') }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                                <span class="text-sm text-gray-700">Tagihan Listrik</span>
+                                <span class="text-sm font-bold text-gray-800">
+                                    {{-- Listrik = Total Tagihan dikurangi Harga Sewa Kamar --}}
+                                    Rp {{ number_format($transaksi->total - ($transaksi->kamar->harga ?? 0), 0, ',', '.') }}
+                                </span>
+                            </div>
+                @else
+                    {{-- JIKA TIDAK ADA TAGIHAN --}}
+                    <div class="py-8 text-center">
+                        <span class="text-gray-400 text-sm font-medium">Hore! Tidak ada tagihan bulan ini.</span>
                     </div>
+                @endif
 
-                    <!-- Item: Tagihan Listrik -->
-                    <div class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-                        <span class="text-sm text-gray-700">Tagihan Listrik</span>
-                        <span class="text-sm font-bold text-gray-800">Rp 99.999.999</span>
-                    </div>
-                </div>
-
-                <hr class="my-4 border-dashed border-gray-200">
-
-                <!-- Total -->
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold text-gray-600">Total Pembayaran</span>
-                    <span class="text-lg font-bold text-gray-900">Rp 99.999.999</span>
-                </div>
-
-                <!-- Tombol Bayar -->
                 <div class="mt-4">
-                    <!-- KODE BARU (Tersambung ke Midtrans) -->
-                    <!-- Catatan: Angka 1 di bawah ini adalah ID Transaksi dummy. Nanti ubah menjadi $tagihan->id jika sudah terkoneksi DB -->
-                    <a href="{{ route('pembayaran.checkout', $transaksi?->id) }}" 
-                        class="block text-center w-full rounded-lg bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600 transition-colors">
-                        Bayar Via Payment Gateway
-                    </a>
+                    @if($transaksi)
+                        <a href="{{ route('pembayaran.checkout', $transaksi->id) }}" 
+                            class="block text-center w-full rounded-lg bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600 transition-colors">
+                            Bayar Via Payment Gateway
+                        </a>
+                    @else
+                        <button disabled 
+                            class="block text-center w-full rounded-lg bg-gray-300 px-4 py-3 text-sm font-bold text-gray-500 cursor-not-allowed">
+                            Belum Ada Tagihan
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>

@@ -73,9 +73,11 @@
                 @else
                     <div>
                         <p class="text-[10px] font-bold uppercase text-gray-500">Penghuni Aktif</p>
-                        <p class="text-sm font-semibold text-gray-800">{{ $kamar->user->nama ?? 'Tidak ada nama' }}</p>
+                        {{-- UBAH: Menggunakan ->tenant->nama --}}
+                        <p class="text-sm font-semibold text-gray-800">{{ $kamar->tenant->nama ?? 'Tidak ada nama' }}</p>
                     </div>
-                    <button type="button" onclick="openMeteranModal({{ $kamar->id }}, '{{ $kamar->nomor }}', {{ $kamar->user->id ?? 'null' }})" class="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer">
+                    {{-- UBAH: Menggunakan ->tenant->id --}}
+                    <button type="button" onclick="openMeteranModal({{ $kamar->id }}, '{{ $kamar->nomor }}', {{ $kamar->tenant->id ?? 'null' }})" class="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer">
                         Input Meteran Listrik
                     </button>
                 @endif
