@@ -6,6 +6,16 @@
 @section('content')
 <div class="space-y-8">
 
+    @if(session('success'))
+        <div class="rounded-xl border border-green-200 bg-green-50 p-4 shadow-sm">
+            <div class="flex items-center gap-3 text-green-800">
+                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm font-bold">{{ session('success') }}</p>
+            </div>
+        </div>
+    @endif
     <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <div class="border-b border-gray-100 bg-gray-50 px-6 py-4">
             <h2 class="text-base font-bold text-gray-800">Menunggu Check-In (Booking Lunas)</h2>
@@ -18,7 +28,7 @@
                     <p class="text-xs text-gray-600">Visitor ini telah mengamankan kamar. Silakan hubungi untuk proses check-in dan serah terima kunci.</p>
                 </div>
                 
-                <form action="#" method="POST" class="w-full sm:w-auto">
+                <form action="{{ route('admin.kamar.checkin') }}" method="POST" class="w-full sm:w-auto">
                     @csrf
                     <input type="hidden" name="kamar_id" value="{{ $kamar->id }}">
                     <button type="submit" class="w-full sm:w-auto rounded-lg bg-green-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-green-700">

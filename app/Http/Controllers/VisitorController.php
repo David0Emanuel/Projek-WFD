@@ -13,9 +13,12 @@ class VisitorController extends Controller
     public function index()
     {
         $branches = Kos::withCount('kamars')
-            ->withCount(['kamars as available_kamar_count' => function ($query) {
+            ->withCount([
+                'kamars',
+                'kamars as available_kamar_count' => function ($query) {
                 $query->where('status', 'Kosong');
             }])
+            ->orderBy('created_at', 'desc') // Urutkan dari cabang terbaru
             ->get();
 
         $availableRooms = Kamar::where('status', 'Kosong')

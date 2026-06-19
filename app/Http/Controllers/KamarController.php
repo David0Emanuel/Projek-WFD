@@ -14,11 +14,10 @@ class KamarController extends Controller
 {
     public function index()
     {
-        // $user = Auth::user();
-        // if (!$user) return redirect('/login'); 
+        $user = Auth::user();
+        if (!$user) return redirect('/login'); 
 
         // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
-        $user = (object) ['kos_id' => 2];
 
         // 1. FILTER KAMAR BERDASARKAN CABANG ADMIN
         $kamarQuery = Kamar::where('kos_id', $user->kos_id);
@@ -173,5 +172,19 @@ class KamarController extends Controller
         $kamar->save();
 
         return redirect()->back()->with('success', 'Perbaikan selesai! Kamar telah dikembalikan ke status Kosong dan siap disewakan.');
+    }
+
+    // FUNGSI UNTUK MELAKUKAN CHECK-IN
+    public function checkin(Request $request)
+    {
+        $request->validate([
+            'kamar_id' => 'required|exists:kamars,id',
+        ]);
+
+        $kamar = Kamar::findOrFail($request->kamar_id);
+        $kamar->status = 'Terisi';
+        $kamar->save();
+
+        return redirect()->back()->with('success', 'Check-in berhasil! Kamar telah diubah menjadi status Terisi.');
     }
 }

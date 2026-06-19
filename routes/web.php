@@ -21,26 +21,74 @@ Route::post('/daftar-cabang/booking', [VisitorController::class, 'storeBooking']
 
 Route::get('/daftar-cabang/{id}', [VisitorController::class, 'show'])->name('visitor.branch.show');
 
-// --- AUTH ROUTES (DIBUKA SEMENTARA) ---
+// // --- AUTH ROUTES (DIBUKA SEMENTARA) ---
 Route::get('/login', function () {
-    return view('auth.login');
+    return view('auth.login'); // Sesuaikan dengan nama folder view login kalian
 })->name('login');
 
-Route::post('/login', function () {
-    return redirect()->back();
-});
+Route::post('/login', function (Request $request) {
+    // 1. Validasi input form
+    $credentials = $request->validate([
+        'username' => 'required',
+        'password' => 'required',
+    ]);
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
+    // 2. Cek kecocokan di database
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
 
-Route::post('/register', function () {
-    return redirect()->back();
+        // 3. Unified Login Redirect (Arahkan sesuai Role)
+        $role = Auth::user()->role;
+        
+        if ($role === 'super_admin') {
+            return redirect()->route('superadmin.dashboard');
+        } elseif ($role === 'admin_cabang') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($role === 'tenant') {
+            return redirect()->route('tenant.dashboard');
+        } else {
+            // Jika role-nya visitor
+            return redirect()->route('home');
+        }
+    }
+
+    // 4. Jika password/username salah, kembalikan ke login dengan pesan error
+    return back()->withErrors([
+        'username' => 'Username atau password salah.',
+    ])->onlyInput('username');
 });
 
 Route::post('/logout', function () {
+    Auth::logout();
     return redirect()->route('home');
 })->name('logout');
+
+Route::get('/register', function () {
+    return view('auth.register'); // Sesuaikan dengan folder view register kalian
+})->name('register');
+
+Route::post('/register', function (Request $request) {
+    // 1. Validasi input pendaftaran
+    $request->validate([
+        'username' => 'required|unique:users,username|max:255',
+        'no_wa'    => 'required|max:20',
+        'password' => 'required|min:6',
+    ]);
+
+    // 2. Buat user baru (Default role: visitor)
+    $user = User::create([
+        'username' => $request->username,
+        'no_wa'    => $request->no_wa,
+        'password' => Hash::make($request->password), // Password wajib di-hash
+        'role'     => 'visitor',
+    ]);
+
+    // 3. Langsung loginkan user setelah mendaftar
+    Auth::login($user);
+
+    // 4. Arahkan ke landing page
+    return redirect()->route('home');
+});
 
 // --- AUTH ROUTES ---
 // Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -100,6 +148,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/kamar/meteran', [KamarController::class, 'storeMeteran'])->name('kamar.meteran');
     Route::post('/kamar/maintenance', [KamarController::class, 'updateMaintenance'])->name('kamar.maintenance');
     Route::post('/kamar/kosong', [KamarController::class, 'markAsKosong'])->name('kamar.kosong');
+    Route::post('/kamar/checkin', [KamarController::class, 'checkin'])->name('kamar.checkin');
 });
 
 // 4. SUPER ADMIN
