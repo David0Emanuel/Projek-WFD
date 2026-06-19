@@ -88,6 +88,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/kamar/maintenance', [KamarController::class, 'updateMaintenance'])->name('kamar.maintenance');
     Route::post('/kamar/kosong', [KamarController::class, 'markAsKosong'])->name('kamar.kosong');
     Route::post('/kamar/checkin', [KamarController::class, 'checkin'])->name('kamar.checkin');
+    Route::post('/komplain/update', [KamarController::class, 'updateStatusKomplain'])->name('komplain.update');
+    Route::post('/survey/approve/{id}', [KamarController::class, 'approveSurvey'])->name('survey.approve');
 });
 
 
@@ -99,11 +101,11 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
-        // 1. Ambil 1 tagihan terbaru yang belum dibayar
-        $transaksi = \App\Models\Transaksi::where('user_id', $user->id)
+        // 1. Ambil SEMUA tagihan yang belum dibayar (Sewa Bulanan maupun Listrik)
+        $tagihans = \App\Models\Transaksi::where('user_id', $user->id)
                         ->where('status_transaksi', 'Unpaid')
-                        ->latest()
-                        ->first();
+                        ->orderBy('created_at', 'desc')
+                        ->get();
         
         // 2. Cek lokasi cabang (kos_id) tenant saat ini
         $kosId = $user->kamar ? $user->kamar->kos_id : $user->kos_id;
@@ -117,7 +119,8 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
                         ->take(5) // Ambil 5 pengumuman terbaru
                         ->get();
         
-        return view('tenant.dashboard', compact('transaksi', 'pengumumans'));
+        // Kirim variabel 'tagihans', 'pengumumans', dan 'user' ke view
+        return view('tenant.dashboard', compact('tagihans', 'pengumumans', 'user'));
     })->name('dashboard');
 
     // Rute Halaman Invoice & Riwayat Tagihan

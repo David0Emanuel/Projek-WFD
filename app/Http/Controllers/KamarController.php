@@ -43,7 +43,8 @@ class KamarController extends Controller
 
         // 4. FILTER SURVEY BERDASARKAN CABANG ADMIN
         $todaySurveyCount = Survey::where('kos_id', $user->kos_id)
-            ->whereDate('waktu_survey', now())
+            ->whereDate('waktu_survey', '=', now()->toDateString())
+            ->whereIn('status', ['Pending', 'pending', 'PENDING']) 
             ->count();
 
         return view('admin.dashboard', compact(
@@ -99,17 +100,15 @@ class KamarController extends Controller
 
     public function komplain()
     {
-        // $user = Auth::user();
-        // if (!$user) return redirect('/login');
-        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
         $user = Auth::user();
         if (!$user) return redirect('/login');
 
-        // Mengambil tiket komplain khusus untuk kamar-kamar yang ada di cabang admin ini
         $komplains = MaintenanceTiket::with(['kamar'])
             ->whereHas('kamar', function ($query) use ($user) {
                 $query->where('kos_id', $user->kos_id);
             })
+            // 👇 Tambahkan 1 baris ini agar tiket 'Selesai' hilang dari layar Admin 👇
+            ->whereIn('status', ['Pending', 'Proses']) 
             ->orderBy('created_at', 'desc')
             ->get();
             
@@ -125,7 +124,9 @@ class KamarController extends Controller
     {
         $request->validate([
             'kamar_id' => 'required|exists:kamars,id',
-            'total_tagihan' => 'required|numeric|min:0',
+            'user_id' => 'required|exists:users,id', // Diambil dari input hidden form
+            'total' => 'required|numeric|min:0',
+            'angka_meteran' => 'required|integer|min:0',
             'foto_meteran' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
         ]);
 
@@ -136,14 +137,20 @@ class KamarController extends Controller
             $fotoPath = $file->storeAs('public/meteran', $filename); 
         }
 
+        // Buat TRANSAKSI BARU khusus listrik yang terpisah dari uang kos
         Transaksi::create([
+            'user_id' => $request->user_id,
             'kamar_id' => $request->kamar_id,
-            'total' => $request->total_tagihan,
-            'type' => 'Tagihan Bulanan', 
+            'total' => $request->total,
+            'angka_meteran' => $request->angka_meteran,
+            'foto_meteran' => $fotoPath,
+            'type' => 'Token Listrik', // Tipe dibedakan
             'status_transaksi' => 'Unpaid', 
+            // Batas waktu bayar listrik (misal 3 hari setelah diinput admin)
+            'expired_at' => now()->addDays(3)->endOfDay() 
         ]);
 
-        return redirect()->back()->with('success', 'Tagihan meteran beserta foto berhasil dikirim ke tenant kamar tersebut.');
+        return redirect()->back()->with('success', 'Tagihan Token Listrik berhasil dikirim ke tenant tersebut.');
     }
 
     // FUNGSI UNTUK MENGUBAH STATUS KAMAR MENJADI MAINTENANCE
@@ -186,5 +193,39 @@ class KamarController extends Controller
         $kamar->save();
 
         return redirect()->back()->with('success', 'Check-in berhasil! Kamar telah diubah menjadi status Terisi.');
+    }
+    // FUNGSI UNTUK MENGUBAH STATUS TIKET KOMPLAIN
+    public function updateStatusKomplain(Request $request)
+    {
+        // 1. Validasi input
+        $request->validate([
+            'tiket_id' => 'required|exists:maintenance_tikets,id', // Sesuaikan nama tabel 'maintenance_tikets' jika berbeda
+            'status_baru' => 'required|in:Proses,Selesai'
+        ]);
+
+        // 2. Cari tiket komplain berdasarkan ID
+        $tiket = MaintenanceTiket::findOrFail($request->tiket_id);
+
+        // 3. Ubah statusnya sesuai tombol yang ditekan (Proses / Selesai)
+        $tiket->status = $request->status_baru;
+        $tiket->save();
+
+        // 4. Siapkan pesan sukses dinamis
+        if ($request->status_baru == 'Proses') {
+            $pesan = 'Tiket komplain berhasil diubah menjadi Sedang Dikerjakan (Proses).';
+        } else {
+            $pesan = 'Pekerjaan selesai! Tiket komplain telah ditutup.';
+        }
+
+        // 5. Kembalikan ke halaman sebelumnya dengan pesan
+        return redirect()->back()->with('success', $pesan);
+    }
+    public function approveSurvey($id)
+    {
+        $survey = Survey::findOrFail($id);
+        $survey->status = 'Approved'; // Pastikan kolom 'status' ada di tabel surveys
+        $survey->save();
+
+        return redirect()->back()->with('success', 'Jadwal survey berhasil di-approve.');
     }
 }

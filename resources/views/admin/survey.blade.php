@@ -56,27 +56,36 @@
                         <th class="px-6 py-4 text-right">Aksi</th>
                     </tr>
                 </thead>
+                <!-- Di dalam file resources/views/admin/survey.blade.php -->
                 <tbody class="divide-y divide-gray-100">
                     @forelse($surveys as $survey)
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-bold text-gray-900">
-                            {{ $survey->no_wa ?? 'Visitor' }}
-                        </td>
+                        <td class="px-6 py-4 font-bold text-gray-900">{{ $survey->no_wa ?? 'Visitor' }}</td>
                         <td class="px-6 py-4">{{ $survey->kos->nama ?? 'KosInAja' }}</td>
                         <td class="px-6 py-4">
-                            <span class="font-semibold">{{ \Carbon\Carbon::parse($survey->waktu_survey)->format('d M Y, H:i') }}
+                            <span class="font-semibold">{{ \Carbon\Carbon::parse($survey->waktu_survey)->format('d M Y, H:i') }}</span>
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50">Reschedule</button>
-                                <button class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">Approve</button>
+                                <!-- Tombol Reschedule via WhatsApp -->
+                                <a href="https://wa.me/{{ preg_replace('/^0/', '62', $survey->no_wa) }}?text=Halo, kami dari admin {{ $survey->kos->nama }}. Ingin melakukan reschedule untuk jadwal survey Anda pada {{ \Carbon\Carbon::parse($survey->waktu_survey)->format('d M Y') }}." 
+                                target="_blank"
+                                class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50">
+                                Reschedule
+                                </a>
+                                
+                                <!-- Tombol Approve (Ubah status jadi Approve) -->
+                                <form action="{{ route('admin.survey.approve', $survey->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                                        Approve
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
                     @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">Belum ada pengajuan survey baru.</td>
-                    </tr>
+                    <!-- ... -->
                     @endforelse
                 </tbody>
             </table>

@@ -270,7 +270,7 @@
             </div>
 
             <div>
-                <label for="no_wa_survey" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-600">Nomor WhatsApp</label>
+                <label for="no_wa" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-600">Nomor WhatsApp</label>
                 <input type="text" id="no_wa_survey" name="no_wa" placeholder="0812xxxxxxx" value="{{ Auth::check() ? Auth::user()->no_wa : '' }}" required 
                        class="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
                 <p class="mt-1 text-[10px] text-gray-500">Admin akan menghubungi nomor ini untuk konfirmasi.</p>

@@ -7,6 +7,7 @@ use App\Models\Kamar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Transaksi;
+use App\Models\Survey;
 
 class VisitorController extends Controller
 {
@@ -54,11 +55,6 @@ class VisitorController extends Controller
 
         return view('visitor.detail', compact('branch'));
     }
-    public function storeSurvey(Request $request)
-    {
-        // Nanti kamu bisa tambahkan kode untuk menyimpan data ke database di sini
-        return redirect()->back()->with('success', 'Pengajuan survey berhasil dikirim. Admin akan segera menghubungi Anda!');
-    }
 
     public function storeBooking(Request $request)
     {
@@ -92,4 +88,29 @@ class VisitorController extends Controller
         return redirect()->route('pembayaran.checkout', $transaksi->id);
     }
 
+    public function storeSurvey(Request $request)
+    {
+        // 1. Validasi input
+        $request->validate([
+            'kos_id' => 'required|exists:kos,id',
+            'tanggal_survey' => 'required|date',
+            'jam_survey' => 'required',
+            'no_wa' => 'required|string|max:20',
+        ]);
+
+        // 2. Gabungkan tanggal dan jam menjadi format datetime
+        $waktuSurvey = $request->tanggal_survey . ' ' . $request->jam_survey;
+
+        // 3. Simpan ke database
+        Survey::create([
+            'kos_id' => $request->kos_id,
+            'user_id' => auth()->id(), // Mengambil ID user yang sedang login
+            'waktu_survey' => $waktuSurvey,
+            'no_wa' => $request->no_wa,
+            'status' => 'Pending', // Status default saat pengajuan
+        ]);
+
+        // 4. Kembali ke halaman dengan pesan sukses
+        return redirect()->back()->with('success', 'Pengajuan survey berhasil! Admin akan segera menghubungi Anda.');
+    }
 }
