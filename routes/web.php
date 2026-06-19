@@ -67,6 +67,33 @@ Route::post('/logout', function () {
     return redirect()->route('home');
 })->name('logout');
 
+Route::get('/register', function () {
+    return view('auth.register'); // Sesuaikan dengan folder view register kalian
+})->name('register');
+
+Route::post('/register', function (Request $request) {
+    // 1. Validasi input pendaftaran
+    $request->validate([
+        'username' => 'required|unique:users,username|max:255',
+        'no_wa'    => 'required|max:20',
+        'password' => 'required|min:6',
+    ]);
+
+    // 2. Buat user baru (Default role: visitor)
+    $user = User::create([
+        'username' => $request->username,
+        'no_wa'    => $request->no_wa,
+        'password' => Hash::make($request->password), // Password wajib di-hash
+        'role'     => 'visitor',
+    ]);
+
+    // 3. Langsung loginkan user setelah mendaftar
+    Auth::login($user);
+
+    // 4. Arahkan ke landing page
+    return redirect()->route('home');
+});
+
 /// - NYALAIN INI DULU KALAU MAU NYOBA LOGIN/REGISTER, SUPERADMIN. DAN JANGAN LUPA MATIKAN,
 ///KODE LINE 28 - 48 DAN 144 -150, SERTA KODE YANG ADA TULISAN BAWAAN DAVID!!!
 //--- AUTH ROUTES ---
