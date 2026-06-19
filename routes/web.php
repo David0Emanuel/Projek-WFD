@@ -155,3 +155,6 @@ Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pe
 // Webhook untuk Midtrans Payment Gateway
 Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+//untuk tenant request keluar
+Route::post('/tenant/request-keluar', [\App\Http\Controllers\DashboardController::class, 'requestKeluar'])->name('tenant.request-keluar');

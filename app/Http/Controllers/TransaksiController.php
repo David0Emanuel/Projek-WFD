@@ -27,11 +27,11 @@ class TransaksiController extends Controller
     /**
      * Logika untuk Admin men-generate Invoice Tagihan Bulanan & Upload Meteran
      */
-    public function storeBulanan(Request $request)
-{
-    try {
-            // 1. Validasi Manual (Agar bisa mengirim pesan error JSON ke Javascript)
-            $validator = Validator::make($request->all(), [
+   public function storeBulanan(Request $request)
+    {
+        try {
+            // 1. Validasi Manual
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
                 'kamar_id'      => 'required|exists:kamars,id',
                 'user_id'       => 'required|exists:users,id',
                 'angka_meteran' => 'required|numeric',
@@ -46,11 +46,29 @@ class TransaksiController extends Controller
                 ], 422);
             }
 
-            // 2. Upload Foto ke folder storage/app/public/meteran
+            // 2. CEK TANGGAL KELUAR (FITUR PEMBATASAN)
+            $tenant = \App\Models\User::find($request->user_id);
+            
+            if ($tenant && $tenant->tanggal_selesaiSewa) {
+                $hariIni = \Carbon\Carbon::now();
+                $tanggalKeluar = \Carbon\Carbon::parse($tenant->tanggal_selesaiSewa);
+
+                // Jika bulan dan tahun saat ini SUDAH MELEWATI atau SAMA DENGAN bulan keluar
+                if ($hariIni->startOfMonth()->greaterThanOrEqualTo($tanggalKeluar->startOfMonth())) {
+                    return response()->json([
+                        'status' => 'error', 
+                        'errors' => [
+                            'user_id' => ['Tenant ini sudah mencapai batas tanggal keluar (' . $tanggalKeluar->format('d M Y') . '). Tidak bisa membuat tagihan baru.']
+                        ]
+                    ], 422);
+                }
+            }
+
+            // 3. Upload Foto Meteran
             $path = $request->file('foto_meteran')->store('meteran', 'public');
 
-            // 3. Simpan ke database
-            Transaksi::create([
+            // 4. Simpan ke database
+            \App\Models\Transaksi::create([
                 'kamar_id'         => $request->kamar_id,
                 'user_id'          => $request->user_id,
                 'angka_meteran'    => $request->angka_meteran,
@@ -58,23 +76,21 @@ class TransaksiController extends Controller
                 'foto_meteran'     => $path,
                 'status_transaksi' => 'Unpaid',
                 'type'             => 'Bulanan',
-                'expired_at'       => Carbon::now()->addDays(3), // Jatuh tempo 3 hari
+                'expired_at'       => \Carbon\Carbon::now()->addDays(3),
             ]);
 
-            // 4. Return respon JSON Sukses
             return response()->json([
                 'status' => 'success', 
                 'message' => 'Data berhasil disimpan'
             ], 200);
 
         } catch (\Exception $e) {
-            // Jika ada error sistem database
             return response()->json([
                 'status' => 'error', 
                 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 500);
         }
-}
+    }
 
     /**
      * Logika untuk Visitor melakukan Booking DP (Tanpa Meteran)

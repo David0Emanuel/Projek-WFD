@@ -4,8 +4,31 @@
 @section('page-title', 'Main Dashboard')
 
 @section('content')
+    @if(session('success'))
+        <div class="mb-6 rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200 flex items-center gap-2 shadow-sm">
+            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-semibold">{{ session('success') }}</span>
+        </div>
+    @endif
 
-    <!-- Pengumuman dari Super Admin -->
+    @if($errors->any())
+        <div class="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200 shadow-sm">
+            <div class="flex items-center gap-2 mb-1">
+                <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <span class="font-bold">Gagal menyimpan data:</span>
+            </div>
+            <ul class="list-disc list-inside text-xs pl-2">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <section class="mb-6">
         <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
             <div class="flex items-center gap-3 border-b border-gray-100 bg-blue-50 px-5 py-3">
@@ -14,10 +37,8 @@
                 </svg>
                 <h3 class="text-sm font-bold text-gray-700">Announcement dari Super Admin</h3>
             </div>
-
             <div class="p-5">
                 <div class="space-y-4" id="announcement-list">
-                    {{-- LOOPING DATA PENGUMUMAN DARI DATABASE --}}
                     @forelse($pengumumans as $pengumuman)
                         <div class="rounded-lg border border-gray-100 bg-gray-50 p-4">
                             <div class="flex items-center gap-2 mb-1">
@@ -28,81 +49,71 @@
                                     <span class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Cabang Anda</span>
                                 @endif
                             </div>
-                            <p class="text-sm text-gray-600">
-                                {!! nl2br(e($pengumuman->isi)) !!}
-                            </p>
+                            <p class="text-sm text-gray-600">{!! nl2br(e($pengumuman->isi)) !!}</p>
                             <p class="mt-2 text-xs text-gray-400">Diposting: {{ $pengumuman->created_at->format('d M Y') }}</p>
                         </div>
                     @empty
-                        <div class="text-center py-4">
-                            <p class="text-sm text-gray-500">Belum ada pengumuman saat ini.</p>
-                        </div>
+                        <div class="text-center py-4"><p class="text-sm text-gray-500">Belum ada pengumuman saat ini.</p></div>
                     @endforelse
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Status Masa Sewa & Daftar Tagihan -->
     <section class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.5fr]">
-
-        <div class="flex flex-col items-center p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            @php
-                // Logika Penentuan Sisa Hari Tenggat 1 Bulan
-                $mulaiSewa = $user->tanggal_mulaiSewa ? \Carbon\Carbon::parse($user->tanggal_mulaiSewa)->startOfDay() : null;
-                
-                if ($mulaiSewa) {
-                    $hariIni = now()->startOfDay();
-                    $tglSewa = $mulaiSewa->day;
-                    
-                    // Tentukan bulan batas akhir (Jika hari ini sudah lewat tgl sewa, batasnya adalah tgl tsb bulan depan)
-                    if ($hariIni->day >= $tglSewa) {
-                        $batasBayar = \Carbon\Carbon::createFromDate($hariIni->year, $hariIni->month, $tglSewa)->addMonthNoOverflow()->startOfDay();
-                    } else {
-                        $batasBayar = \Carbon\Carbon::createFromDate($hariIni->year, $hariIni->month, $tglSewa)->startOfDay();
+        <div class="flex flex-col gap-6">
+            <div class="flex flex-col items-center p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                @php
+                    $mulaiSewa = $user->tanggal_mulaiSewa ? \Carbon\Carbon::parse($user->tanggal_mulaiSewa)->startOfDay() : null;
+                    if ($mulaiSewa) {
+                        $hariIni = now()->startOfDay();
+                        $tglSewa = $mulaiSewa->day;
+                        if ($hariIni->day >= $tglSewa) {
+                            $batasBayar = \Carbon\Carbon::createFromDate($hariIni->year, $hariIni->month, $tglSewa)->addMonthNoOverflow()->startOfDay();
+                        } else {
+                            $batasBayar = \Carbon\Carbon::createFromDate($hariIni->year, $hariIni->month, $tglSewa)->startOfDay();
+                        }
+                        $sisaHari = (int) $hariIni->diffInDays($batasBayar, false);
+                        $isWarning = $sisaHari <= 7; 
                     }
+                @endphp
+
+                @if($mulaiSewa)
+                    <div class="mb-4 flex h-36 w-36 flex-col items-center justify-center rounded-full border-4 {{ $isWarning ? 'border-amber-400 bg-amber-50' : 'border-blue-400 bg-blue-50' }}">
+                        <span class="text-5xl font-black {{ $isWarning ? 'text-amber-600' : 'text-gray-800' }}">{{ $sisaHari }}</span>
+                        <span class="text-xs font-bold uppercase tracking-wider {{ $isWarning ? 'text-amber-600' : 'text-gray-500' }}">Sisa Hari</span>
+                    </div>
+                    <div class="w-full rounded-lg border {{ $isWarning ? 'border-amber-200 bg-amber-50' : 'border-gray-100 bg-gray-50' }} px-4 py-3 text-center mb-4">
+                        <p class="text-[10px] font-bold uppercase tracking-wider {{ $isWarning ? 'text-amber-600' : 'text-gray-500' }}">Batas Pembayaran Sewa</p>
+                        <p class="mt-1 text-base font-black {{ $isWarning ? 'text-amber-700' : 'text-gray-800' }}">{{ $batasBayar->translatedFormat('d F Y') }}</p>
+                    </div>
+
+                    <button onclick="toggleModal('modalKeluar')" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50 hover:text-red-600 flex justify-center items-center gap-2 shadow-sm">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                        </svg>
+                        Atur Rencana Keluar Kos
+                    </button>
                     
-                    // Hitung Sisa Hari (Rentang 30 hari ke 0)
-                    $sisaHari = (int) $hariIni->diffInDays($batasBayar, false);
-                    $isWarning = $sisaHari <= 7; // Peringatan jika sisa waktu tinggal seminggu
-                }
-            @endphp
-
-            @if($mulaiSewa)
-                <div class="mb-4 flex h-36 w-36 flex-col items-center justify-center rounded-full border-4 {{ $isWarning ? 'border-amber-400 bg-amber-50' : 'border-blue-400 bg-blue-50' }}">
-                    <span class="text-5xl font-black {{ $isWarning ? 'text-amber-600' : 'text-gray-800' }}">
-                        {{ $sisaHari }}
-                    </span>
-                    <span class="text-xs font-bold uppercase tracking-wider {{ $isWarning ? 'text-amber-600' : 'text-gray-500' }}">Sisa Hari</span>
-                </div>
-
-                <div class="w-full rounded-lg border {{ $isWarning ? 'border-amber-200 bg-amber-50' : 'border-gray-100 bg-gray-50' }} px-4 py-3 text-center">
-                    <p class="text-[10px] font-bold uppercase tracking-wider {{ $isWarning ? 'text-amber-600' : 'text-gray-500' }}">Batas Pembayaran Sewa</p>
-                    <p class="mt-1 text-base font-black {{ $isWarning ? 'text-amber-700' : 'text-gray-800' }}">
-                        {{ $batasBayar->translatedFormat('d F Y') }}
-                    </p>
-                    @if($isWarning)
-                        <p class="text-[10px] text-amber-700 mt-2 font-bold bg-amber-100 py-1 rounded">Segera lunasi tagihan bulan ini!</p>
-                    @else
-                        <p class="text-[10px] text-gray-500 mt-2 font-medium">Periode sewa aman (Siklus 1 Bulan)</p>
+                    @if($user->tanggal_selesaiSewa)
+                        <div class="mt-3 text-center bg-green-50 border border-green-100 rounded px-3 py-1">
+                            <p class="text-[11px] text-green-700 font-bold">✓ Keluar Terjadwal: {{ \Carbon\Carbon::parse($user->tanggal_selesaiSewa)->translatedFormat('d M Y') }}</p>
+                        </div>
                     @endif
-                </div>
-            @else
-                <div class="mb-4 flex h-36 w-36 flex-col items-center justify-center rounded-full border-4 border-gray-300 bg-gray-50">
-                    <span class="text-4xl font-bold text-gray-400">-</span>
-                </div>
-                <div class="w-full text-center">
-                    <p class="text-sm font-bold text-gray-600">Siklus Sewa Belum Aktif</p>
-                </div>
-            @endif
+                @else
+                    <div class="mb-4 flex h-36 w-36 flex-col items-center justify-center rounded-full border-4 border-gray-300 bg-gray-50">
+                        <span class="text-4xl font-bold text-gray-400">-</span>
+                    </div>
+                    <div class="w-full text-center">
+                        <p class="text-sm font-bold text-gray-600">Siklus Sewa Belum Aktif</p>
+                    </div>
+                @endif
+            </div>
         </div>
 
         <div id="daftar-tagihan" class="rounded-lg border border-gray-200 bg-white shadow-sm flex flex-col">
             <div class="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-5 py-4">
                 <div class="flex items-center gap-3">
-                    <svg class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                    </svg>
                     <h3 class="text-sm font-bold text-gray-800">Tagihan Belum Dibayar</h3>
                 </div>
                 <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-700">{{ $tagihans->count() }} Tagihan</span>
@@ -114,23 +125,15 @@
                         @foreach($tagihans as $tagihan)
                             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:border-blue-200">
                                 <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <h4 class="text-sm font-bold text-gray-900">{{ $tagihan->type }}</h4>
-                                        @if($tagihan->type == 'Sewa Bulanan')
-                                            <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-indigo-700">Bulanan</span>
-                                        @else
-                                            <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">Fleksibel</span>
-                                        @endif
-                                    </div>
+                                    <h4 class="text-sm font-bold text-gray-900 mb-1">{{ $tagihan->type }}</h4>
                                     <p class="text-xs text-gray-500">Dikeluarkan: {{ $tagihan->created_at->format('d M Y') }}</p>
                                     @if($tagihan->angka_meteran)
                                         <p class="text-xs font-semibold text-gray-700 mt-1">Meteran: {{ $tagihan->angka_meteran }} kWh</p>
                                     @endif
                                 </div>
-
                                 <div class="flex w-full sm:w-auto items-center sm:flex-col gap-3 sm:gap-2">
                                     <p class="flex-1 sm:flex-none text-lg font-black text-gray-900">Rp {{ number_format($tagihan->total, 0, ',', '.') }}</p>
-                                    <a href="{{ route('pembayaran.checkout', $tagihan->id) }}" class="rounded-lg bg-blue-600 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700 text-center">
+                                    <a href="{{ route('pembayaran.checkout', $tagihan->id ?? 1) }}" class="rounded-lg bg-blue-600 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-700 text-center">
                                         Bayar
                                     </a>
                                 </div>
@@ -140,15 +143,65 @@
                 @else
                     <div class="flex h-full flex-col items-center justify-center text-center py-10">
                         <div class="mb-3 rounded-full bg-green-100 p-3">
-                            <svg class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
                         </div>
                         <h4 class="text-sm font-bold text-gray-800">Semua Tagihan Lunas!</h4>
-                        <p class="text-xs text-gray-500 mt-1">Kamu tidak memiliki tagihan sewa atau listrik bulan ini.</p>
                     </div>
                 @endif
             </div>
         </div>
     </section>
+
+    <div id="modalKeluar" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md animate-fade-in">
+                
+                <form action="{{ route('tenant.request-keluar') }}" method="POST">
+                    @csrf
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Rencana Keluar Kos</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500 mb-4">Tentukan tanggal Anda berencana keluar.</p>
+                                    
+                                    <label for="tanggal_selesaiSewa" class="block text-[11px] font-bold uppercase text-gray-600 mb-1">Pilih Tanggal Keluar</label>
+                                    <input type="date" name="tanggal_selesaiSewa" id="tanggal_selesaiSewa" required value="{{ $user->tanggal_selesaiSewa }}"
+                                           class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">
+                            Simpan Tanggal
+                        </button>
+                        <button type="button" onclick="toggleModal('modalKeluar')" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+    </script>
 @endsection
