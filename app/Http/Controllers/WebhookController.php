@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Transaksi;
 use App\Models\Kamar;
 use Illuminate\Support\Facades\Http;
+use App\Models\AdminLog;
 
 class WebhookController extends Controller
 {
@@ -31,8 +32,8 @@ class WebhookController extends Controller
         }
 
         // 3. Ambil ID murni dari format 'INV-1-1718608476'
-        $pecah = explode('-', $orderIdLengkap);// Memecah string berdasarkan tanda strip '-'
-        $transaksiId = $pecah[1];// Mengambil bagian tengah, yaitu angka '1'
+        $pecah = explode('-', $orderIdLengkap); // Memecah string berdasarkan tanda strip '-'
+        $transaksiId = $pecah[1]; // Mengambil bagian tengah, yaitu angka '1'
         
         $transaksi = Transaksi::find($transaksiId);
         
@@ -46,7 +47,6 @@ class WebhookController extends Controller
             return response()->json(['message' => 'Transaksi sudah lunas sebelumnya'], 200);
         }
 
-
         // 4. Eksekusi Perubahan Database
         if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
             
@@ -54,17 +54,34 @@ class WebhookController extends Controller
             $transaksi->update(['status_transaksi' => 'Paid']);
             Log::info("Transaksi {$transaksiId} BERHASIL DIBAYAR.");
 
+            // --- INTEGRASI NOTIFIKASI SUPER ADMIN DINAMIS ---
+            $namaUser = $transaksi->user->nama ?? $transaksi->user->username ?? 'User';
+            $nomorKamar = $transaksi->kamar->nomor_kamar ?? '-';
+            
+            if (strtoupper($transaksi->type) == 'DP' || strtoupper($transaksi->type) == 'DP BOOKING') {
+                $pesanNotif = "DP Booking masuk Rp " . number_format($transaksi->total, 0, ',', '.') . " dari calon penghuni (Visitor): {$namaUser} untuk Kamar {$nomorKamar}";
+            } elseif (strtoupper($transaksi->type) == 'BULANAN') {
+                $pesanNotif = "Sewa Bulanan masuk Rp " . number_format($transaksi->total, 0, ',', '.') . " dari penghuni (Tenant): {$namaUser} di Kamar {$nomorKamar}";
+            } else {
+                $pesanNotif = "Pembayaran " . $transaksi->type . " masuk Rp " . number_format($transaksi->total, 0, ',', '.') . " dari {$namaUser}";
+            }
+
+            AdminLog::create([
+                'tipe' => 'pembayaran',
+                'pesan' => $pesanNotif,
+                'is_read' => false 
+            ]);
 
             // LOGIKA KHUSUS JIKA INI ADALAH PEMBAYARAN DP BOOKING
             if (strtoupper($transaksi->type) == 'DP') {
         
                 // Ubah role user dari 'visitor' menjadi 'tenant' sesuai instruksi UI
                 $transaksi->user->update([
-                            'role' => 'tenant',
-                            'kamar_id' => $transaksi->kamar_id,
-                            'kos_id' => Kamar::find($transaksi->kamar_id)->kos_id ?? null, 
-                            'tanggal_mulaiSewa' => now()->toDateString(),
-                        ]);
+                    'role' => 'tenant',
+                    'kamar_id' => $transaksi->kamar_id,
+                    'kos_id' => Kamar::find($transaksi->kamar_id)->kos_id ?? null, 
+                    'tanggal_mulaiSewa' => now()->toDateString(),
+                ]);
         
                 // Ubah status kamar menjadi 'Terisi'
                 $transaksi->kamar->update(['status' => 'Terisi']);
@@ -95,33 +112,27 @@ class WebhookController extends Controller
         return response()->json(['message' => 'Webhook berhasil diproses']);
     }
 
-
-
     private function sendWhatsAppNotification($transaksi)
-{
-    Log::info("Fungsi sendWhatsAppNotification dipanggil untuk user: " . $transaksi->user->nama);
+    {
+        Log::info("Fungsi sendWhatsAppNotification dipanggil untuk user: " . $transaksi->user->nama);
 
-    $token = env('FONNTE_TOKEN');
-    // $token = '5Q8u4zX4P2FWj1BerPGV';
-    $noWa = $transaksi->user->no_wa;
-    $target = (substr($noWa, 0, 1) == '0') ? '62' . substr($noWa, 1) : $noWa;
+        $token = env('FONNTE_TOKEN');
+        $noWa = $transaksi->user->no_wa;
+        $target = (substr($noWa, 0, 1) == '0') ? '62' . substr($noWa, 1) : $noWa;
 
-    // 1. Definisikan nilai default agar tidak error 'Undefined variable'
-    $message = "Halo, pembayaran Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah berhasil diterima.";
+        $message = "Halo, pembayaran Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah berhasil diterima.";
 
-    // 2. Timpa dengan pesan khusus jika kondisinya terpenuhi
-    if (strtoupper($transaksi->type) == 'DP' || strtoupper($transaksi->type) == 'DP BOOKING') {
-        $message = "Selamat! Pembayaran DP Booking kamar Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " BERHASIL. Akun Anda kini resmi ditingkatkan menjadi Tenant di KosInAja.";
-    } elseif (strtoupper($transaksi->type) == 'BULANAN') {
-        $message = "Halo {$transaksi->user->nama}, pembayaran tagihan {$transaksi->type} sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah BERHASIL diterima.";
+        if (strtoupper($transaksi->type) == 'DP' || strtoupper($transaksi->type) == 'DP BOOKING') {
+            $message = "Selamat! Pembayaran DP Booking kamar Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " BERHASIL. Akun Anda kini resmi ditingkatkan menjadi Tenant di KosInAja.";
+        } elseif (strtoupper($transaksi->type) == 'BULANAN') {
+            $message = "Halo {$transaksi->user->nama}, pembayaran tagihan {$transaksi->type} sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah BERHASIL diterima.";
+        }
+
+        Http::withoutVerifying()->withHeaders([
+            'Authorization' => $token
+        ])->post('https://api.fonnte.com/send', [
+            'target' => $target,
+            'message' => $message,
+        ]);
     }
-
-    // 3. Kirim Pesan
-    Http::withoutVerifying()->withHeaders([
-        'Authorization' => $token
-    ])->post('https://api.fonnte.com/send', [
-        'target' => $target,
-        'message' => $message,
-    ]);
-}
 }

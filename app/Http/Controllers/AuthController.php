@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\AdminLog;
 
 class AuthController extends Controller
 {
@@ -47,6 +48,7 @@ class AuthController extends Controller
         return redirect()->route('home')->with('success', 'Registrasi berhasil! Selamat datang di KosInAja.');
     }
     // Proses Unified Login
+    // Proses Unified Login
     public function processLogin(Request $request)
     {
         $credentials = $request->validate([
@@ -62,7 +64,14 @@ class AuthController extends Controller
             // Logika Unified Login Redirect (Sesuai Proposal)
             switch ($role) {
                 case 'super_admin':
+                    \App\Models\AdminLog::create([
+                        'tipe' => 'login',
+                        'pesan' => 'Super Admin berhasil login ke sistem pada ' . now()->format('d M Y H:i'),
+                        'is_read' => true // Log login tidak perlu muncul di badge angka notifikasi header
+                    ]);
+                    
                     return redirect()->route('superadmin.dashboard');
+                    
                 case 'admin_cabang':
                     return redirect()->route('admin.dashboard');
                 case 'tenant':

@@ -90,6 +90,11 @@ class VisitorController extends Controller
 
     public function storeSurvey(Request $request)
     {
+        // Pengecekan apakah user sudah login atau belum
+        if (!auth()->check()) {
+            return redirect()->back()->with('error', 'Anda harus login terlebih dahulu untuk mengajukan survey.');
+        }
+
         // 1. Validasi input
         $request->validate([
             'kos_id' => 'required|exists:kos,id',
@@ -104,13 +109,24 @@ class VisitorController extends Controller
         // 3. Simpan ke database
         Survey::create([
             'kos_id' => $request->kos_id,
-            'user_id' => auth()->id(), // Mengambil ID user yang sedang login
+            'user_id' => auth()->id(), // Sekarang aman, karena dipastikan tidak null
             'waktu_survey' => $waktuSurvey,
             'no_wa' => $request->no_wa,
-            'status' => 'Pending', // Status default saat pengajuan
+            'status' => 'Pending', 
         ]);
 
-        // 4. Kembali ke halaman dengan pesan sukses
-        return redirect()->back()->with('success', 'Pengajuan survey berhasil! Admin akan segera menghubungi Anda.');
+        
+        $kos = Kos::find($request->kos_id);
+        
+        // Catatan: Jika nama kolom di tabel kos kamu bukan 'nama', silakan ganti '$kos->nama' menjadi nama kolom yang benar (misal: '$kos->nama_kos')
+        $namaKos = $kos ? $kos->nama : 'Cabang Kos tidak diketahui'; 
+
+        \App\Models\AdminLog::create([
+            'tipe' => 'survey',
+            'pesan' => 'Ada pengajuan survey baru dari WhatsApp ' . $request->no_wa . ' untuk Kos: ' . $namaKos,
+            'is_read' => false
+        ]);
+        
+        return redirect()->back()->with('success', 'Pengajuan survey berhasil dikirim! Admin akan segera menghubungi...');
     }
 }

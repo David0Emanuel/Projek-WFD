@@ -19,8 +19,8 @@ class DatabaseSeeder extends Seeder
         // 2. Buat User Super Admin
         User::create([
             'username' => 'superadmin',
-            'nama' => 'Super Admin PuluBoys',
-            'email' => 'super@puluboys.com',
+            'nama' => 'Super Admin',
+            'email' => 'super@kosinaja.com',
             'no_wa' => '081111111111',
             'password' => Hash::make('super123'), 
             'role' => 'super_admin',
@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'username' => 'adminrungkut',
             'nama' => 'Admin Rungkut',
-            'email' => 'rungkut@puluboys.com',
+            'email' => 'rungkut@kosinaja.com',
             'no_wa' => '082222222222',
             'password' => Hash::make('admin123'), 
             'role' => 'admin_cabang',
@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'username' => 'adminsukolilo',
             'nama' => 'Admin Sukolilo',
-            'email' => 'sukolilo@puluboys.com',
+            'email' => 'sukolilo@kosinaja.com',
             'no_wa' => '083333333333',
             'password' => Hash::make('admin123'), 
             'role' => 'admin_cabang',
@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'username' => 'user1',
             'nama' => 'User 1',
-            'email' => 'user1@puluboys.com',
+            'email' => 'user1@kosinaja.com',
             'no_wa' => '084444444444',
             'password' => Hash::make('user123'),
             'role' => 'tenant',

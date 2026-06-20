@@ -18,7 +18,7 @@ class BranchSeeder extends Seeder
         DB::table('kos')->insert([
             [
                 'id' => 1,
-                'nama' => 'Kos PuluBoys - Sukolilo',
+                'nama' => 'KosInAja - Sukolilo',
                 'alamat' => 'Jl. Keputih Sukolilo No. 10, Surabaya',
                 'deskripsi' => 'Kos nyaman dekat kampus dengan fasilitas lengkap dan akses 24 jam.',
                 'foto' => null,
@@ -27,7 +27,7 @@ class BranchSeeder extends Seeder
             ],
             [
                 'id' => 2,
-                'nama' => 'Kos PuluBoys - Rungkut',
+                'nama' => 'KosInAja - Rungkut',
                 'alamat' => 'Jl. Rungkut Madya No. 45, Surabaya',
                 'deskripsi' => 'Akses mudah ke area industri dan kampus UPN, lingkungan tenang.',
                 'foto' => null,

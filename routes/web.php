@@ -72,6 +72,32 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/pengaturan', function () {
         return view('superadmin.pengaturan.index');
     })->name('pengaturan.index');
+
+    // -------------------------------------------------------------------
+    // RUTE NOTIFIKASI & LOG AKTIVITAS (SUDAH DIPERBAIKI)
+    // -------------------------------------------------------------------
+    // Rute Notifikasi Pembayaran & Survey
+    Route::post('/notifications/mark-as-read', function() {
+        \App\Models\AdminLog::whereIn('tipe', ['pembayaran', 'survey'])
+                            ->where('is_read', false)
+                            ->update(['is_read' => true]);
+        return response()->json(['success' => true]);
+    })->name('notifications.clear'); // Cukup 'notifications.clear' karena sudah di dalam grup 'superadmin.'
+
+    Route::get('/log-aktivitas', function() {
+        $logs = \App\Models\AdminLog::where('tipe', 'login')
+                                    ->latest()
+                                    ->take(15)
+                                    ->get()
+                                    ->map(function($log) {
+                                        return [
+                                            'pesan' => $log->pesan,
+                                            'waktu' => $log->created_at->diffForHumans()
+                                        ];
+                                    });
+        return response()->json($logs);
+    })->name('log-aktivitas'); // Cukup 'log-aktivitas' karena sudah di dalam grup 'superadmin.'
+
 });
 
 
