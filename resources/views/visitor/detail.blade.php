@@ -358,13 +358,27 @@
         const tanggal = document.getElementById('tanggal_masuk');
         
         if(kamar && kamar.value === "") {
-            alert('Silakan pilih kamar terlebih dahulu!');
-            kamar.focus();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Perhatian!',
+                text: 'Silakan pilih kamar terlebih dahulu!',
+                confirmButtonColor: '#0f2b5b',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                kamar.focus();
+            });
             return;
         }
         if(tanggal && tanggal.value === "") {
-            alert('Silakan tentukan rencana masuk terlebih dahulu!');
-            tanggal.focus();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Perhatian!',
+                text: 'Silakan tentukan rencana masuk terlebih dahulu!',
+                confirmButtonColor: '#0f2b5b',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                tanggal.focus();
+            });
             return;
         }
 
@@ -408,7 +422,14 @@
                 clearInterval(timerInterval);   
                 display.textContent = "00:00:00";
                 closeBookingModal();
-                alert('Waktu pembayaran habis. Silakan ajukan booking kembali.');
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Waktu Habis!',
+                    text: 'Waktu pembayaran habis. Silakan ajukan booking kembali.',
+                    confirmButtonColor: '#dc2626',
+                    confirmButtonText: 'Tutup'
+                });
             }
         }, 1000);
     }

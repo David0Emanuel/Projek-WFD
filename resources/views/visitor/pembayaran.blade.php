@@ -43,18 +43,46 @@
     payButton.addEventListener('click', function () {
         window.snap.pay('{{ $snapToken }}', {
             onSuccess: function(result){
-                alert("Pembayaran sukses! Selamat, Anda kini resmi menjadi Tenant.");
-                window.location.href = "{{ route('home') }}";
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pembayaran Sukses!',
+                    text: 'Selamat, Anda kini resmi menjadi Tenant.',
+                    confirmButtonColor: '#16a34a', // Warna Hijau
+                    confirmButtonText: 'Lanjut'
+                }).then((result) => {
+                    // Pindah halaman SETELAH tombol ditekan
+                    window.location.href = "{{ route('home') }}";
+                });
             },
             onPending: function(result){
-                alert("Menunggu pembayaran Anda.");
-                window.location.href = "{{ route('home') }}";
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Menunggu Pembayaran',
+                    text: 'Silakan selesaikan pembayaran Anda.',
+                    confirmButtonColor: '#2563eb', // Warna Biru
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    // Pindah halaman SETELAH tombol ditekan
+                    window.location.href = "{{ route('home') }}";
+                });
             },
             onError: function(result){
-                alert("Pembayaran gagal, silahkan coba lagi.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Pembayaran Gagal',
+                    text: 'Terjadi kesalahan, silakan coba lagi.',
+                    confirmButtonColor: '#dc2626', // Warna Merah
+                    confirmButtonText: 'Tutup'
+                });
             },
             onClose: function(){
-                alert('Anda menutup popup sebelum menyelesaikan pembayaran.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pembayaran Dibatalkan',
+                    text: 'Anda menutup popup sebelum menyelesaikan pembayaran.',
+                    confirmButtonColor: '#f59e0b', // Warna Kuning/Amber
+                    confirmButtonText: 'OK'
+                });
             }
         });
     });
