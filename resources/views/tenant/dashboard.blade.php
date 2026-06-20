@@ -5,14 +5,16 @@
 
 @section('content')
     @if(session('success'))
-        <div class="mb-6 rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200 flex items-center gap-2 shadow-sm">
-            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span class="font-semibold">{{ session('success') }}</span>
+        <div class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 shadow-sm animate-fade-in-down">
+            <div class="flex items-center gap-3 text-green-800">
+                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm font-bold">{{ session('success') }}</p>
+            </div>
         </div>
     @endif
-
+    
     @if($errors->any())
         <div class="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200 shadow-sm">
             <div class="flex items-center gap-2 mb-1">
@@ -39,7 +41,7 @@
             </div>
             <div class="p-5">
                 <div class="space-y-4" id="announcement-list">
-                    @forelse($pengumumans as $pengumuman)
+                    @forelse($pengumumans->take(3) as $pengumuman)
                         <div class="rounded-lg border border-gray-100 bg-gray-50 p-4">
                             <div class="flex items-center gap-2 mb-1">
                                 <h4 class="text-sm font-semibold text-gray-800">{{ $pengumuman->judul }}</h4>

@@ -43,7 +43,7 @@ class KamarController extends Controller
 
         // 4. FILTER SURVEY BERDASARKAN CABANG ADMIN
         $todaySurveyCount = Survey::where('kos_id', $user->kos_id)
-            ->whereDate('waktu_survey', '=', now()->toDateString())
+            ->whereDate('waktu_survey', '>=', now()->toDateString())
             ->whereIn('status', ['Pending', 'pending', 'PENDING']) 
             ->count();
 

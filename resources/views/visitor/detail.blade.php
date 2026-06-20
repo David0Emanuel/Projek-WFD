@@ -6,6 +6,15 @@
 <div class="space-y-6">
 
     @if(session('success'))
+        @if ($errors->any())
+        <div class="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
+            <ul class="text-sm font-bold text-red-800 list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
         <div class="rounded-xl border border-green-200 bg-green-50 p-4 shadow-sm">
             <div class="flex items-center gap-3 text-green-800">
                 <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -203,7 +212,7 @@
 
                     <div>
                         <label for="tanggal_masuk" class="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-600">Rencana Masuk</label>
-                        <input type="date" id="tanggal_masuk" name="tanggal_masuk" required
+                        <input type="date" id="tanggal_masuk" name="tanggal_masuk" min="{{ date('Y-m-d', strtotime('tomorrow')) }}" required
                                class="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
                     </div>
 
@@ -288,13 +297,13 @@
 
             <div>
                 <label for="tanggal_survey" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-600">Tanggal Survey</label>
-                <input type="date" id="tanggal_survey" name="tanggal_survey" required 
+                <input type="date" id="tanggal_survey" name="tanggal_survey" min="{{ date('Y-m-d', strtotime('tomorrow')) }}" required 
                        class="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
             </div>
 
             <div>
                 <label for="jam_survey" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-600">Jam Survey</label>
-                <input type="time" id="jam_survey" name="jam_survey" required 
+                <input type="time" id="jam_survey" name="jam_survey" min="{{ date('H:i') }}" required 
                        class="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
             </div>
 

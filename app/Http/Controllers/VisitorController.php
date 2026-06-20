@@ -65,11 +65,18 @@ class VisitorController extends Controller
         // 1. Validasi input dari form UI David
         $request->validate([
             'kamar_id' => 'required|exists:kamars,id',
-            'tanggal_masuk' => 'required|date',
+            'tanggal_masuk' => 'required|date|after_or_equal:today',
         ]);
 
-        // 2. Ambil data kamar
-        $kamar = Kamar::findOrFail($request->kamar_id);
+        // supaya ga nabrakan booking
+        $kamar = Kamar::where('id', $request->kamar_id)
+                  ->where('status', 'Kosong') // Cek apakah masih benar-benar kosong
+                  ->first();
+
+        if (!$kamar) {
+            return redirect()->back()->with('error', 'Maaf, kamar ini baru saja dipesan orang lain.');
+        }
+
         $userId = Auth::id();
 
         // 3. Buat transaksi DP Booking
@@ -98,7 +105,7 @@ class VisitorController extends Controller
         // 1. Validasi input
         $request->validate([
             'kos_id' => 'required|exists:kos,id',
-            'tanggal_survey' => 'required|date',
+            'tanggal_survey' => 'required|date|after:today',
             'jam_survey' => 'required',
             'no_wa' => 'required|string|max:20',
         ]);

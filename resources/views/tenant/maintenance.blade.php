@@ -87,17 +87,9 @@
                                     <div class="flex justify-between font-bold @if($ticket->status === 'Selesai') text-green-600 @else text-gray-400 @endif">
                                         <span>Selesai Ditangani</span>
                                         @if($ticket->status === 'Selesai')
-                                            <span>Selesai</span>
+                                            <span>Selesai Ditangani</span>
                                         @endif
                                     </div>
-                                    @if($ticket->status === 'completed')
-                                        <p class="text-gray-600 mt-0.5">Catatan: {{ $ticket->admin_notes ?? 'Selesai diperbaiki oleh teknisi.' }}</p>
-                                        @if($ticket->completed_date)
-                                            <p class="text-gray-400 text-[10px] mt-0.5">{{ \Carbon\Carbon::parse($ticket->completed_date)->format('d/m/Y H:i') }}</p>
-                                        @endif
-                                    @else
-                                        <p class="text-gray-400 mt-0.5">Menunggu pengerjaan selesai.</p>
-                                    @endif
                                 </div>
                             </div>
 
@@ -116,7 +108,7 @@
                                         @endif
                                     </div>
                                     @if($ticket->status === 'Proses' || $ticket->status === 'Selesai')
-                                        <p class="text-gray-600 mt-0.5">Keterangan: {{ $ticket->status_message ?? 'Keluhan sedang dikerjakan oleh petugas.' }}</p>
+                                        <p class="text-gray-600 mt-0.5">{{ $ticket->status_message }}</p>
                                     @else
                                         <p class="text-gray-400 mt-0.5">Keluhan akan segera diproses.</p>
                                     @endif
@@ -135,7 +127,6 @@
                                             <span>Pending</span>
                                         @endif
                                     </div>
-                                    <p class="text-gray-600 mt-0.5">Keterangan: Tiket telah masuk sistem.</p>
                                     <p class="text-gray-400 text-[10px] mt-0.5">Tanggal Pengajuan: {{ $ticket->created_at->format('d/m/Y H:i') }}</p>
                                 </div>
                             </div>

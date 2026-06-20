@@ -22,19 +22,39 @@
         </div>
         <div class="p-6 space-y-4">
             @forelse($checkins as $kamar)
+            @php
+                // Cek apakah ada transaksi DP yang sudah dibayar untuk kamar ini
+                $transaksiLunas = \App\Models\Transaksi::where('kamar_id', $kamar->id)
+                                    ->whereIn('type', ['DP', 'DP Booking'])
+                                    ->where('status_transaksi', 'Paid')
+                                    ->exists();
+            @endphp
+
             <div class="flex flex-col items-start justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center transition-all hover:border-blue-200">
                 <div>
                     <p class="text-sm font-bold text-gray-900">Kamar {{ $kamar->nomor }} - {{ $kamar->user->nama ?? 'Menunggu Data' }}</p>
-                    <p class="text-xs text-gray-600">Visitor ini telah mengamankan kamar. Silakan hubungi untuk proses check-in dan serah terima kunci.</p>
+                    <p class="text-xs text-gray-600">
+                        @if($transaksiLunas)
+                            Visitor ini telah mengamankan kamar. Silakan hubungi untuk proses check-in.
+                        @else
+                            <span class="text-red-500 font-bold">Status: Belum Lunas DP</span>
+                        @endif
+                    </p>
                 </div>
                 
-                <form action="{{ route('admin.kamar.checkin') }}" method="POST" class="w-full sm:w-auto">
-                    @csrf
-                    <input type="hidden" name="kamar_id" value="{{ $kamar->id }}">
-                    <button type="submit" class="w-full sm:w-auto rounded-lg bg-green-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-green-700">
-                        Selesaikan Check-In
+                @if($transaksiLunas)
+                    <form action="{{ route('admin.kamar.checkin') }}" method="POST" class="w-full sm:w-auto">
+                        @csrf
+                        <input type="hidden" name="kamar_id" value="{{ $kamar->id }}">
+                        <button type="submit" class="w-full sm:w-auto rounded-lg bg-green-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-green-700">
+                            Selesaikan Check-In
+                        </button>
+                    </form>
+                @else
+                    <button type="button" disabled class="w-full sm:w-auto rounded-lg bg-gray-300 px-5 py-2.5 text-sm font-bold text-white cursor-not-allowed">
+                        Belum Lunas DP
                     </button>
-                </form>
+                @endif
             </div>
             @empty
             <p class="text-sm text-gray-500 text-center py-4">Tidak ada visitor yang menunggu check-in saat ini.</p>
@@ -67,20 +87,25 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <!-- Tombol Reschedule via WhatsApp -->
-                                <a href="https://wa.me/{{ preg_replace('/^0/', '62', $survey->no_wa) }}?text=Halo, kami dari admin {{ $survey->kos->nama }}. Ingin melakukan reschedule untuk jadwal survey Anda pada {{ \Carbon\Carbon::parse($survey->waktu_survey)->format('d M Y') }}." 
+                                <a href="https://wa.me/{{ preg_replace('/^0/', '62', $survey->no_wa) }}" 
                                 target="_blank"
                                 class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50">
                                 Reschedule
                                 </a>
                                 
-                                <!-- Tombol Approve (Ubah status jadi Approve) -->
-                                <form action="{{ route('admin.survey.approve', $survey->id) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
-                                        Approve
+                                @if(strtolower($survey->status) == 'approved')
+                                    <button type="button" disabled 
+                                            class="rounded-lg bg-green-500 px-3 py-2 text-xs font-bold text-white cursor-not-allowed">
+                                        Approved
                                     </button>
-                                </form>
+                                @else
+                                    <form action="{{ route('admin.survey.approve', $survey->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                                            Approve
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

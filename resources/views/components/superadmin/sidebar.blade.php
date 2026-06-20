@@ -2,7 +2,7 @@
     
     <div class="flex h-16 shrink-0 items-center justify-between px-6 border-b border-gray-100 bg-slate-50">
         <div class="flex items-center gap-2">
-            <span class="text-lg font-black text-gray-800 tracking-tight">Kos<span class="text-blue-500">In</span>Aja</span>
+            <a href="{{ route('superadmin.dashboard') }}" class="text-lg font-black text-gray-800 tracking-tight hover:text-blue-500 transition-colors">Kos<span class="text-blue-500">In</span>Aja</a>
         </div>
         <button type="button" onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-gray-600 cursor-pointer">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
