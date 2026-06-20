@@ -8,6 +8,7 @@ use App\Models\Kamar;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class CabangController extends Controller
 {
@@ -35,27 +36,39 @@ class CabangController extends Controller
         $validated = $request->validate([
             'nama'           => 'required|string|max:100',
             'alamat'         => 'required|string|max:255',
+            'deskripsi'      => 'nullable|string',
+            'foto'           => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'total_kamar'    => 'required|integer|min:1',
-            'tipe_kamar'     => 'required|string|max:50',  // <-- Tambahan validasi
+            'tipe_kamar'     => 'required|string|max:50', 
             'harga'          => 'required|numeric|min:0',
             'admin_nama'     => 'required|string|max:100',
             'admin_username' => 'required|string|unique:users,username|max:50',
             'admin_password' => 'required|string|min:6',
         ]);
 
+        // Proses Upload Foto (Jika ada)
+        $fotoPath = null;
+        if ($request->hasFile('foto')) {
+            $file = $request->file('foto');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $fotoPath = $file->storeAs('kos', $filename, 'public'); 
+        }
+
         // 2. Buat Cabang Baru
         $kos = Kos::create([
-            'nama'   => $request->nama,
-            'alamat' => $request->alamat,
+            'nama'      => $request->nama,
+            'alamat'    => $request->alamat,
+            'deskripsi' => $request->deskripsi,
+            'foto'      => $fotoPath,
         ]);
 
-        // 3. Auto-Generate Kamar (Misal: 01, 02, 03... dst)
+        // 3. Auto-Generate Kamar 
         for ($i = 1; $i <= $request->total_kamar; $i++) {
             Kamar::create([
                 'kos_id' => $kos->id,
-                'nomor'  => str_pad($i, 2, '0', STR_PAD_LEFT), // Format 2 digit angka
+                'nomor'  => str_pad($i, 2, '0', STR_PAD_LEFT), 
                 'status' => 'Kosong',
-                'tipe_kamar' => $request->tipe_kamar, // <-- Ambil dari form
+                'tipe_kamar' => $request->tipe_kamar, 
                 'harga'      => $request->harga,
             ]);
         }
@@ -64,9 +77,9 @@ class CabangController extends Controller
         User::create([
             'nama'     => $request->admin_nama,
             'username' => $request->admin_username,
-            'email'    => $request->admin_username . '@puluboys.com', // Email otomatis
-            'no_wa'    => '0000', // Nomor WA default (bisa diedit nanti)
-            'password' => Hash::make($request->admin_password),
+            'email'    => $request->admin_username . '@puluboys.com', 
+            'no_wa'    => '0000', 
+            'password' => \Illuminate\Support\Facades\Hash::make($request->admin_password),
             'role'     => 'admin_cabang',
             'kos_id'   => $kos->id,
         ]);
@@ -77,24 +90,42 @@ class CabangController extends Controller
 
     public function update(Request $request, Kos $cabang)
     {
-        // 1. Validasi Update
+       // 1. Validasi Update
         $request->validate([
             'nama'           => 'required|string|max:100',
             'alamat'         => 'required|string|max:255',
+            'deskripsi'      => 'nullable|string',
+            'foto'           => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'total_kamar'    => 'required|integer|min:' . $cabang->kamars()->count(),
-            'tipe_kamar'     => 'nullable|string|max:50', // <-- Tambahan
-            'harga'          => 'nullable|numeric|min:0', // Tidak boleh mengurangi kamar yg ada
+            'tipe_kamar'     => 'nullable|string|max:50', 
+            'harga'          => 'nullable|numeric|min:0', 
             'admin_nama'     => 'required|string|max:100',
             'admin_username' => 'required|string|max:50|unique:users,username,' . ($cabang->admin->id ?? ''),
         ]);
 
+        $fotoPath = $cabang->foto;
+
+        // Jika upload foto baru
+        if ($request->hasFile('foto')) {
+            // Hapus foto lama jika ada
+            if ($cabang->foto && Storage::disk('public')->exists($cabang->foto)) {
+                Storage::disk('public')->delete($cabang->foto);
+            }
+            // Upload foto baru
+            $file = $request->file('foto');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $fotoPath = $file->storeAs('kos', $filename, 'public');
+        }
+
         // 2. Update Data Kos
         $cabang->update([
-            'nama'   => $request->nama,
-            'alamat' => $request->alamat,
+            'nama'      => $request->nama,
+            'alamat'    => $request->alamat,
+            'deskripsi' => $request->deskripsi,
+            'foto'      => $fotoPath,
         ]);
 
-        // 3. Tambah Kamar Baru (Jika total kamar di form lebih besar dari yg ada di DB)
+        // 3. Tambah Kamar Baru
         $kamarSekarang = $cabang->kamars()->count();
         if ($request->total_kamar > $kamarSekarang) {
             $selisih = $request->total_kamar - $kamarSekarang;
@@ -104,7 +135,7 @@ class CabangController extends Controller
                     'kos_id' => $cabang->id,
                     'nomor'  => str_pad($nomorBaru, 2, '0', STR_PAD_LEFT),
                     'status' => 'Kosong',
-                    'tipe_kamar' => $request->tipe_kamar ?? 'Standard', // Ambil dari form edit
+                    'tipe_kamar' => $request->tipe_kamar ?? 'Standard', 
                     'harga'      => $request->harga ?? 0,
                 ]);
             }
@@ -116,7 +147,7 @@ class CabangController extends Controller
             $admin->nama = $request->admin_nama;
             $admin->username = $request->admin_username;
             if ($request->filled('admin_password')) {
-                $admin->password = Hash::make($request->admin_password);
+                $admin->password = \Illuminate\Support\Facades\Hash::make($request->admin_password);
             }
             $admin->save();
         }

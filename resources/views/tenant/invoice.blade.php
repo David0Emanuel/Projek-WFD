@@ -68,7 +68,7 @@
                         <p class="text-xs font-bold text-gray-600 mb-2">Foto Bukti Meteran</p>
                         <div class="w-full h-44 rounded border border-gray-300 overflow-hidden bg-gray-250 flex items-center justify-center">
                             {{-- Tampilkan foto meteran asli dari storage --}}
-                            <img src="{{ asset('storage/' . $tagihan_aktif->foto_meteran) }}" alt="Meteran Listrik" class="w-full h-full object-cover">
+                            <img src="{{ asset('storage/' . str_replace('public/', '', $tagihan_aktif->foto_meteran)) }}" alt="Meteran Listrik" class="w-full h-full object-cover">
                         </div>
                     </div>
                     @endif

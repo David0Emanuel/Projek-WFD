@@ -59,6 +59,7 @@
                         "id" => $kos->id, 
                         "nama" => $kos->nama, 
                         "alamat" => $kos->alamat,
+                        "deskripsi" => $kos->deskripsi,
                         "kamar_count" => $kos->kamar_count,
                         "admin_nama" => $kos->admin->nama ?? "",
                         "admin_username" => $kos->admin->username ?? ""
@@ -94,7 +95,7 @@
             <span class="text-base font-bold text-white">Tambah Cabang & Admin Baru</span>
             <button type="button" onclick="closeModal('modal-tambah')" class="text-blue-200 hover:text-white text-2xl cursor-pointer">&times;</button>
         </div>
-        <form action="{{ route('superadmin.cabang.store') }}" method="POST" class="p-6 space-y-4">
+        <form action="{{ route('superadmin.cabang.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
             @csrf
             
             <div class="grid grid-cols-2 gap-4">
@@ -127,6 +128,17 @@
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Alamat Cabang</label>
                 <textarea name="alamat" rows="2" required placeholder="Jl. Raya Tenggilis..."
                     class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Deskripsi Kos (Fasilitas, dll)</label>
+                <textarea name="deskripsi" rows="3" placeholder="Contoh: Fasilitas lengkap, dekat kampus, free wifi..."
+                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Upload Foto Utama Kos</label>
+                <input type="file" name="foto" accept="image/jpeg, image/png, image/jpg"
+                    class="w-full rounded-lg border border-gray-300 p-2 text-sm">
             </div>
 
             <hr class="border-gray-200 my-4">
@@ -174,7 +186,7 @@
             <span class="text-base font-bold text-white">Edit Cabang & Admin</span>
             <button type="button" onclick="closeModal('modal-edit')" class="text-amber-100 hover:text-white text-2xl cursor-pointer">&times;</button>
         </div>
-        <form id="form-edit" action="" method="POST" class="p-6 space-y-4">
+        <form id="form-edit" action="" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
             @csrf
             @method('PUT')
             
@@ -209,6 +221,18 @@
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Alamat Cabang</label>
                 <textarea id="edit-alamat" name="alamat" rows="2" required
                     class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Deskripsi Kos</label>
+                <textarea id="edit-deskripsi" name="deskripsi" rows="3"
+                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Ganti Foto Kos (Opsional)</label>
+                <input type="file" name="foto" accept="image/jpeg, image/png, image/jpg"
+                    class="w-full rounded-lg border border-gray-300 p-2 text-sm">
+                <p class="text-[10px] text-gray-500 mt-1">Biarkan kosong jika tidak ingin mengganti foto.</p>
             </div>
 
             <hr class="border-gray-200 my-4">
@@ -292,6 +316,7 @@
     function openEditModal(data) {
         document.getElementById('edit-nama').value           = data.nama;
         document.getElementById('edit-alamat').value         = data.alamat;
+        document.getElementById('edit-deskripsi').value      = data.deskripsi || '';
         document.getElementById('edit-kamar').value          = data.kamar_count;
         document.getElementById('edit-admin-nama').value     = data.admin_nama;
         document.getElementById('edit-admin-username').value = data.admin_username;

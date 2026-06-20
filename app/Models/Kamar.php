@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Kamar extends Model
 {
     protected $table = 'kamars'; 
-    protected $fillable = ['kos_id', 'nomor', 'tipe_kamar', 'harga', 'status'];
+    protected $fillable = ['kos_id', 'nomor', 'status', 'tipe_kamar', 'harga', 
+        'foto_kamar', 'spesifikasi', 'fasilitas'];
 
     public function kos() {
         return $this->belongsTo(Kos::class);

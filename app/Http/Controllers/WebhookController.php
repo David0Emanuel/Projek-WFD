@@ -72,20 +72,6 @@ class WebhookController extends Controller
                 'is_read' => false 
             ]);
 
-            // LOGIKA KHUSUS JIKA INI ADALAH PEMBAYARAN DP BOOKING
-            if (strtoupper($transaksi->type) == 'DP') {
-        
-                // Ubah role user dari 'visitor' menjadi 'tenant' sesuai instruksi UI
-                $transaksi->user->update([
-                    'role' => 'tenant',
-                    'kamar_id' => $transaksi->kamar_id,
-                    'kos_id' => Kamar::find($transaksi->kamar_id)->kos_id ?? null, 
-                    'tanggal_mulaiSewa' => now()->toDateString(),
-                ]);
-        
-                // Ubah status kamar menjadi 'Terisi'
-                $transaksi->kamar->update(['status' => 'Terisi']);
-            }
 
             // Panggil fungsi WhatsApp Fonnte
             $this->sendWhatsAppNotification($transaksi);
@@ -123,7 +109,7 @@ class WebhookController extends Controller
         $message = "Halo, pembayaran Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah berhasil diterima.";
 
         if (strtoupper($transaksi->type) == 'DP' || strtoupper($transaksi->type) == 'DP BOOKING') {
-            $message = "Selamat! Pembayaran DP Booking kamar Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " BERHASIL. Akun Anda kini resmi ditingkatkan menjadi Tenant di KosInAja.";
+            $message = "Selamat! Pembayaran DP Booking kamar Anda sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " BERHASIL. Silakan datang ke lokasi kos untuk mengambil kunci dan melakukan proses Check-In dengan Admin.";
         } elseif (strtoupper($transaksi->type) == 'BULANAN') {
             $message = "Halo {$transaksi->user->nama}, pembayaran tagihan {$transaksi->type} sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah BERHASIL diterima.";
         }

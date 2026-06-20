@@ -114,6 +114,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/kamar/maintenance', [KamarController::class, 'updateMaintenance'])->name('kamar.maintenance');
     Route::post('/kamar/kosong', [KamarController::class, 'markAsKosong'])->name('kamar.kosong');
     Route::post('/kamar/checkin', [KamarController::class, 'checkin'])->name('kamar.checkin');
+    Route::post('/kamar/update-detail', [\App\Http\Controllers\KamarController::class, 'updateDetail'])->name('kamar.update-detail');
     Route::post('/komplain/update', [KamarController::class, 'updateStatusKomplain'])->name('komplain.update');
     Route::post('/survey/approve/{id}', [KamarController::class, 'approveSurvey'])->name('survey.approve');
 });

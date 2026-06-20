@@ -134,7 +134,7 @@ class KamarController extends Controller
         if ($request->hasFile('foto_meteran')) {
             $file = $request->file('foto_meteran');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $fotoPath = $file->storeAs('public/meteran', $filename); 
+           $fotoPath = $file->storeAs('meteran', $filename, 'public'); 
         }
 
         // Buat TRANSAKSI BARU khusus listrik yang terpisah dari uang kos
@@ -184,16 +184,41 @@ class KamarController extends Controller
     // FUNGSI UNTUK MELAKUKAN CHECK-IN
     public function checkin(Request $request)
     {
+        // 1. Validasi kamar yang diklik
         $request->validate([
             'kamar_id' => 'required|exists:kamars,id',
         ]);
 
-        $kamar = Kamar::findOrFail($request->kamar_id);
-        $kamar->status = 'Terisi';
-        $kamar->save();
+        $kamar = \App\Models\Kamar::findOrFail($request->kamar_id);
 
-        return redirect()->back()->with('success', 'Check-in berhasil! Kamar telah diubah menjadi status Terisi.');
+        // 2. CARI OTOMATIS: Siapa Visitor yang sudah lunas DP di kamar ini?
+        $transaksi = \App\Models\Transaksi::where('kamar_id', $kamar->id)
+                        ->where(function($query) {
+                            $query->where('type', 'DP')->orWhere('type', 'DP Booking');
+                        })
+                        ->where('status_transaksi', 'Paid')
+                        ->latest()
+                        ->first();
+
+        // 3. Jika ketemu, angkat dia jadi Tenant!
+        if ($transaksi && $transaksi->user) {
+            $transaksi->user->update([
+                'role' => 'tenant',
+                'kamar_id' => $kamar->id,
+                'kos_id' => $kamar->kos_id,
+                'tanggal_mulaiSewa' => now()->toDateString(),
+            ]);
+        } else {
+            // Jika admin menekan check-in tapi DP belum lunas, tolak!
+            return redirect()->back()->with('error', 'Gagal Check-In: Belum ada pembayaran DP yang lunas untuk kamar ini.');
+        }
+
+        // 4. Ubah status kamar menjadi Terisi
+        $kamar->update(['status' => 'Terisi']);
+
+        return redirect()->back()->with('success', 'Check-in berhasil! Kunci telah diserahkan dan Visitor resmi menjadi Tenant.');
     }
+
     // FUNGSI UNTUK MENGUBAH STATUS TIKET KOMPLAIN
     public function updateStatusKomplain(Request $request)
     {
@@ -227,5 +252,58 @@ class KamarController extends Controller
         $survey->save();
 
         return redirect()->back()->with('success', 'Jadwal survey berhasil di-approve.');
+    }
+
+    // FUNGSI UNTUK MENGUBAH DETAIL, FOTO, DAN HARGA KAMAR
+    public function updateDetail(Request $request)
+    {
+        $request->validate([
+            'kamar_id'    => 'required|exists:kamars,id',
+            'tipe_kamar'  => 'required|string',
+            'harga'       => 'required|numeric|min:0',
+            'spesifikasi' => 'nullable|string',
+            'fasilitas'   => 'nullable|string',
+            'foto_kamar'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $kamar = \App\Models\Kamar::findOrFail($request->kamar_id);
+        $fotoPath = $kamar->foto_kamar;
+
+        // Proses Upload Foto Kamar Baru
+        if ($request->hasFile('foto_kamar')) {
+            if ($kamar->foto_kamar && \Illuminate\Support\Facades\Storage::disk('public')->exists($kamar->foto_kamar)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($kamar->foto_kamar);
+            }
+            $file = $request->file('foto_kamar');
+            $filename = time() . '_kamar_' . $file->getClientOriginalName();
+            $fotoPath = $file->storeAs('kamar', $filename, 'public');
+        }
+
+        // CEK APAKAH ADMIN MENCENTANG "TERAPKAN KE SEMUA"
+        if ($request->has('apply_to_all')) {
+            // Update SEMUA kamar di kos ini yang tipe aslinya sama dengan kamar yang diedit
+            \App\Models\Kamar::where('kos_id', $kamar->kos_id)
+                ->where('tipe_kamar', $kamar->tipe_kamar) 
+                ->update([
+                    'tipe_kamar'  => $request->tipe_kamar,
+                    'harga'       => $request->harga,
+                    'spesifikasi' => $request->spesifikasi,
+                    'fasilitas'   => $request->fasilitas,
+                    'foto_kamar'  => $fotoPath,
+                ]);
+            $pesan = 'Update Massal Berhasil! Semua kamar ' . $kamar->tipe_kamar . ' telah diperbarui.';
+        } else {
+            // Update HANYA 1 kamar ini saja
+            $kamar->update([
+                'tipe_kamar'  => $request->tipe_kamar,
+                'harga'       => $request->harga,
+                'spesifikasi' => $request->spesifikasi,
+                'fasilitas'   => $request->fasilitas,
+                'foto_kamar'  => $fotoPath,
+            ]);
+            $pesan = 'Detail Spesifikasi Kamar ' . $kamar->nomor . ' berhasil diperbarui!';
+        }
+
+        return redirect()->back()->with('success', $pesan);
     }
 }

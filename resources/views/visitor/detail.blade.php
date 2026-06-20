@@ -49,6 +49,7 @@
 
         <div class="space-y-8">
             
+            {{-- BAGIAN FOTO UTAMA KOS --}}
             <div class="aspect-video w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm">
                 @if(isset($branch->foto) && $branch->foto)
                     <img src="{{ asset('storage/' . $branch->foto) }}" alt="Foto {{ $branch->nama }}" class="h-full w-full object-cover">
@@ -60,6 +61,18 @@
                         <span class="text-sm font-medium">Belum ada foto cabang</span>
                     </div>
                 @endif
+            </div>
+
+            {{-- BAGIAN DESKRIPSI KOS (Ditambahkan ke sini) --}}
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-gray-900">Tentang {{ $branch->nama }}</h2>
+                <div class="mt-3 text-sm text-gray-600 leading-relaxed">
+                    @if(isset($branch->deskripsi) && $branch->deskripsi)
+                        {!! nl2br(e($branch->deskripsi)) !!}
+                    @else
+                        <p class="italic text-gray-400">Belum ada deskripsi untuk kos ini.</p>
+                    @endif
+                </div>
             </div>
 
             <div>
@@ -77,8 +90,9 @@
                         
                         <article class="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-md">
                             <div class="aspect-[4/3] w-full border-b border-gray-100 bg-gray-100">
-                                @if(isset($contohKamar->foto) && $contohKamar->foto)
-                                    <img src="{{ asset('storage/' . $contohKamar->foto) }}" alt="Kamar {{ $tipe }}" class="h-full w-full object-cover">
+                                {{-- Nanti foto_kamar akan dipanggil di sini --}}
+                                @if(isset($contohKamar->foto_kamar) && $contohKamar->foto_kamar)
+                                    <img src="{{ asset('storage/' . $contohKamar->foto_kamar) }}" alt="Kamar {{ $tipe }}" class="h-full w-full object-cover">
                                 @else
                                     <div class="flex h-full w-full items-center justify-center text-gray-300">
                                         <svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,26 +118,40 @@
                 </div>
             </div>
 
+            {{-- CATATAN: Ini masih bersifat Statis (Hardcode) sampai kita mengupdate database tabel Kamar --}}
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                
+                {{-- KOTAK SPESIFIKASI --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h2 class="text-lg font-bold text-gray-900">Spesifikasi Kamar</h2>
+                    <h2 class="text-lg font-bold text-gray-900">Spesifikasi Kamar Utama</h2>
                     <ul class="mt-4 space-y-3 text-sm text-gray-600">
-                        <li class="flex items-center gap-3"><span class="text-blue-500">📏</span> Ukuran 3x4 Meter</li>
-                        <li class="flex items-center gap-3"><span class="text-blue-500">🛏️</span> Kasur Springbed Lengkap</li>
-                        <li class="flex items-center gap-3"><span class="text-blue-500">🚿</span> Kamar Mandi Dalam</li>
-                        <li class="flex items-center gap-3"><span class="text-blue-500">⚡</span> Listrik Token (Terpisah)</li>
+                        @php $contohKamar = isset($branch) && $branch->kamars->count() > 0 ? $branch->kamars->first() : null; @endphp
+                        
+                        @if($contohKamar && $contohKamar->spesifikasi)
+                            {{-- Memecah teks koma menjadi list ke bawah --}}
+                            @foreach(explode(',', $contohKamar->spesifikasi) as $spek)
+                                <li class="flex items-center gap-3"><span class="text-blue-500">❖</span> {{ trim($spek) }}</li>
+                            @endforeach
+                        @else
+                            <li class="italic text-gray-400">Belum ada rincian spesifikasi.</li>
+                        @endif
                     </ul>
                 </div>
 
+                {{-- KOTAK FASILITAS --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h2 class="text-lg font-bold text-gray-900">Fasilitas Gratis</h2>
+                    <h2 class="text-lg font-bold text-gray-900">Fasilitas Tersedia</h2>
                     <ul class="mt-4 space-y-3 text-sm text-gray-600">
-                        <li class="flex items-center gap-3"><span class="text-green-500">✓</span> WiFi Kecepatan Tinggi</li>
-                        <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Air Minum (Galon)</li>
-                        <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Parkir Motor Luas</li>
-                        <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Dapur Bersama</li>
+                        @if($contohKamar && $contohKamar->fasilitas)
+                            @foreach(explode(',', $contohKamar->fasilitas) as $fasilitas)
+                                <li class="flex items-center gap-3"><span class="text-green-500">✓</span> {{ trim($fasilitas) }}</li>
+                            @endforeach
+                        @else
+                            <li class="italic text-gray-400">Belum ada rincian fasilitas.</li>
+                        @endif
                     </ul>
                 </div>
+                
             </div>
             
         </div>
@@ -133,6 +161,7 @@
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Mulai Dari</p>
                 <div class="mt-1 flex items-end gap-1">
                     <span class="text-3xl font-black text-gray-900">
+                        {{-- Logika otomatis mencari harga terendah --}}
                         Rp {{ isset($branch) && $branch->kamars->count() > 0 ? number_format($branch->kamars->min('harga'), 0, ',', '.') : '0' }}
                     </span>
                     <span class="mb-1 text-sm font-medium text-gray-500">/ bulan</span>
@@ -165,7 +194,7 @@
                             <option value="" disabled selected>-- Pilih Kamar Tersedia --</option>
                             @foreach($branch->kamars->where('status', 'Kosong') as $kamar)
                                 <option value="{{ $kamar->id }}">
-                                    Kamar {{ $kamar->nomor_kamar }} ({{ ucfirst($kamar->tipe_kamar) }}) - Rp {{ number_format($kamar->harga, 0, ',', '.') }}
+                                    Kamar {{ $kamar->nomor }} ({{ ucfirst($kamar->tipe_kamar) }}) - Rp {{ number_format($kamar->harga, 0, ',', '.') }}
                                 </option>
                             @endforeach
                         </select>
@@ -337,7 +366,7 @@
             bookingContent.classList.remove('scale-95');
         }, 10);
 
-        // Jalankan Timer 30 Menit (1800 detik)
+        // Jalankan Timer 24 Jam (86400 detik)
         startTimer(86400, displayTimer);
     }
 
@@ -357,7 +386,7 @@
         
         timerInterval = setInterval(function () {
             hours = parseInt(timer / 3600, 10);
-            minutes = parseInt(timer / 1440, 10);
+            minutes = parseInt((timer % 3600) / 60, 10);
             seconds = parseInt(timer % 60, 10);
 
             hours = hours < 10 ? "0" + hours : hours;
