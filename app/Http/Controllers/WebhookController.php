@@ -13,7 +13,7 @@ class WebhookController extends Controller
 {
     public function handlePayment(Request $request)
     {
-        // 1. Ambil payload dari request Midtrans
+        // midtrans n ya nerima uang maka midtransa bakal kirim payload ke ngrok
         $payload = $request->all();
         $orderIdLengkap = $payload['order_id'] ?? ''; 
         $statusCode = $payload['status_code'] ?? '';
@@ -23,17 +23,19 @@ class WebhookController extends Controller
 
         Log::info("Webhook masuk untuk Order: {$orderIdLengkap}. Status: {$transactionStatus}");
 
-        // 2. Verifikasi Keamanan Signature
+        // karena url webhook ini bisa diakses terbuka di internet lewat ngrok
+        //jadi buat cegah kita verifikasi pake signature key,
         $serverKey = env('MIDTRANS_SERVER_KEY');
         $mySignature = hash('sha512', $orderIdLengkap . $statusCode . $grossAmount . $serverKey);
 
+        //jdi kalo signaturekey ga sama bawaan midtrans ya sistem bakal nolak
         if ($signatureKey !== $mySignature) {
             return response()->json(['message' => 'Invalid Signature'], 403);
         }
 
-        // 3. Ambil ID murni dari format 'INV-1-1718608476'
+        // Ambil ID murni dari format 'INV-1-1718608476'
         $pecah = explode('-', $orderIdLengkap); // Memecah string berdasarkan tanda strip '-'
-        $transaksiId = $pecah[1]; // Mengambil bagian tengah, yaitu angka '1'
+        $transaksiId = $pecah[1]; // Mengambil index ke 1 yg merupakan id asli di database
         
         $transaksi = Transaksi::find($transaksiId);
         
@@ -54,7 +56,7 @@ class WebhookController extends Controller
             $transaksi->update(['status_transaksi' => 'Paid']);
             Log::info("Transaksi {$transaksiId} BERHASIL DIBAYAR.");
 
-            // --- INTEGRASI NOTIFIKASI SUPER ADMIN DINAMIS ---
+            //
             $namaUser = $transaksi->user->nama ?? $transaksi->user->username ?? 'User';
             $nomorKamar = $transaksi->kamar->nomor_kamar ?? '-';
             
@@ -114,6 +116,7 @@ class WebhookController extends Controller
             $message = "Halo {$transaksi->user->nama}, pembayaran tagihan {$transaksi->type} sebesar Rp " . number_format($transaksi->total, 0, ',', '.') . " telah BERHASIL diterima.";
         }
 
+        //ni mastiin pengiriman dari jaringan lokal tidak diblokir karena masalah sertifikat SSL
         Http::withoutVerifying()->withHeaders([
             'Authorization' => $token
         ])->post('https://api.fonnte.com/send', [
