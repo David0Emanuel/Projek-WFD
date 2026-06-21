@@ -64,39 +64,54 @@
 
     <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-        <div class="rounded-lg border border-gray-200 bg-white shadow-sm lg:col-span-2">
-            <div class="flex items-center justify-between border-b border-gray-100 bg-slate-50 px-5 py-3">
-                <h3 class="text-sm font-bold text-gray-700">Permintaan Survey Terbaru</h3>
+        <div class="lg:col-span-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <div class="border-b border-gray-100 bg-gray-50 px-6 py-4">
+                <h2 class="text-base font-bold text-gray-800">List Pengajuan Survey</h2>
             </div>
-            <div class="p-5 overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-600">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600 min-w-[600px]">
+                    <thead class="border-b border-gray-200 bg-white text-xs uppercase text-gray-500">
                         <tr>
-                            <th class="px-4 py-3">Visitor</th>
-                            <th class="px-4 py-3">Cabang Tujuan</th>
-                            <th class="px-4 py-3">Waktu Survey</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3 text-right">Aksi</th>
+                            <th class="px-6 py-4">Pendaftar Survey</th>
+                            <th class="px-6 py-4">Cabang Tujuan</th>
+                            <th class="px-6 py-4">Jadwal Diajukan</th>
+                            <th class="px-6 py-4 text-center">Status Saat Ini</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($surveys as $survey)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 font-medium text-gray-900">{{ $survey->user?->nama ?? 'Umum' }}</td>
-                            <td class="px-4 py-3">{{ $survey->kos?->nama ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $survey->waktu_survey ? $survey->waktu_survey->format('d M Y, H:i') : '-' }}</td>
-                            <td class="px-4 py-3">
-                                <span class="rounded-full bg-yellow-100 px-2 py-1 text-[10px] font-bold text-yellow-700">{{ $survey->status }}</span>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-gray-900">{{ $survey->user->nama ?? 'Visitor Terhapus' }}</div>
+                                <div class="text-xs text-gray-500">{{ $survey->user->no_wa ?? '-' }}</div>
                             </td>
-                            <td class="px-4 py-3 text-right">
-                                <button onclick="openApprovalModal({{ $survey->id }}, '{{ $survey->user?->nama ?? 'Umum' }}', '{{ $survey->kos?->nama ?? '-' }}', '{{ $survey->waktu_survey ? $survey->waktu_survey->format('d M Y, H:i') : '' }}')" class="rounded bg-blue-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-600 cursor-pointer">
-                                    Proses
-                                </button>
+                            <td class="px-6 py-4">{{ $survey->kos->nama ?? 'KosInAja' }}</td>
+                            <td class="px-6 py-4">
+                                <span class="font-semibold">{{ \Carbon\Carbon::parse($survey->waktu_survey)->format('d M Y, H:i') }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if(strtolower($survey->status) == 'pending')
+                                    <span class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-650/20">
+                                        Pending (Menunggu Admin)
+                                    </span>
+                                @elseif(strtolower($survey->status) == 'approved')
+                                    <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                        Approved oleh Cabang
+                                    </span>
+                                @elseif(strtolower($survey->status) == 'selesai')
+                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-650/20">
+                                        Selesai ✔
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                        {{ ucfirst($survey->status) }}
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-400">Belum ada antrean survey baru.</td>
+                            <td colspan="4" class="text-sm text-gray-500 text-center py-6">Belum ada riwayat data survey yang masuk.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -137,58 +152,4 @@
 
     </section>
 
-    {{-- MODAL PROSES SURVEY --}}
-    <div id="approval-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
-        <div class="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden transform transition-all">
-            <div class="flex items-center justify-between bg-blue-600 px-5 py-4 border-b border-gray-200">
-                <span class="text-base font-bold text-white">Proses Permintaan Survey</span>
-                <button type="button" onclick="closeApprovalModal()" class="text-blue-200 hover:text-white font-medium text-2xl transition-colors duration-200 cursor-pointer focus:outline-none">
-                    &times;
-                </button>
-            </div>
-            
-            <form id="form-update-survey" action="" method="POST" class="p-6">
-                @csrf
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                    <p class="text-sm text-gray-500 mb-1">Nama Visitor:</p>
-                    <p class="text-base font-bold text-gray-800 mb-3" id="modal-visitor-name">-</p>
-                    
-                    <p class="text-sm text-gray-500 mb-1">Tujuan & Waktu:</p>
-                    <p class="text-sm font-bold text-gray-800" id="modal-visitor-details">-</p>
-                </div>
-
-                <div class="mb-5">
-                    <label class="mb-1 block text-xs font-semibold text-gray-600">Catatan Admin (Opsional)</label>
-                    <input type="text" name="catatan" placeholder="Contoh: Temui admin di lokasi" class="w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:border-blue-500">
-                </div>
-                
-                <p class="text-sm font-medium text-gray-700 mb-3">Pilih Tindakan:</p>
-                
-                <div class="flex gap-3">
-                    <button type="submit" name="status" value="Ditolak" class="flex-1 py-2.5 px-4 bg-white border border-red-500 text-red-600 rounded-lg font-bold text-sm hover:bg-red-50 transition-colors cursor-pointer">
-                        Tolak
-                    </button>
-                    <button type="submit" name="status" value="Disetujui" class="flex-1 py-2.5 px-4 bg-green-500 text-white rounded-lg font-bold text-sm hover:bg-green-600 transition-colors cursor-pointer">
-                        Setujui Survey
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
 @endsection
-
-@push('scripts')
-<script>
-    function openApprovalModal(id, name, branch, time) {
-        document.getElementById('modal-visitor-name').innerText = name;
-        document.getElementById('modal-visitor-details').innerText = branch + ' | ' + time;
-        document.getElementById('form-update-survey').action = `/superadmin/survey/${id}/status`;
-        document.getElementById('approval-modal').classList.remove('hidden');
-    }
-
-    function closeApprovalModal() {
-        document.getElementById('approval-modal').classList.add('hidden');
-    }
-</script>
-@endpush

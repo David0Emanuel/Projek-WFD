@@ -35,7 +35,9 @@
                     <p class="text-sm font-bold text-gray-900">Kamar {{ $kamar->nomor }} - {{ $kamar->user->nama ?? 'Menunggu Data' }}</p>
                     <p class="text-xs text-gray-600">
                         @if($transaksiLunas)
-                            Visitor ini telah mengamankan kamar. Silakan hubungi untuk proses check-in.
+                            <span class="font-bold text-blue-700">
+                                {{ $kamar->transaksis->first()?->user?->nama ?? 'Visitor' }}
+                            </span> telah mengamankan kamar. Silakan hubungi untuk proses check-in.
                         @else
                             <span class="text-red-500 font-bold">Status: Belum Lunas DP</span>
                         @endif
@@ -80,32 +82,57 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($surveys as $survey)
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-bold text-gray-900">{{ $survey->no_wa ?? 'Visitor' }}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">{{ $survey->user->nama ?? 'Visitor' }}</div>
+                            <div class="text-xs text-gray-500">{{ $survey->user->no_wa ?? '-' }}</div>
+                        </td>
                         <td class="px-6 py-4">{{ $survey->kos->nama ?? 'KosInAja' }}</td>
                         <td class="px-6 py-4">
                             <span class="font-semibold">{{ \Carbon\Carbon::parse($survey->waktu_survey)->format('d M Y, H:i') }}</span>
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="https://wa.me/{{ preg_replace('/^0/', '62', $survey->no_wa) }}" 
-                                target="_blank"
-                                class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50">
-                                Reschedule
-                                </a>
                                 
-                                @if(strtolower($survey->status) == 'approved')
+                                @if(strtolower($survey->status) == 'selesai')
                                     <button type="button" disabled 
-                                            class="rounded-lg bg-green-500 px-3 py-2 text-xs font-bold text-white cursor-not-allowed">
-                                        Approved
+                                            class="rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs font-bold text-gray-400 cursor-not-allowed">
+                                        Reschedule
                                     </button>
+                                    <button type="button" disabled 
+                                            class="rounded-lg bg-gray-400 px-3 py-2 text-xs font-bold text-white cursor-not-allowed">
+                                        Selesai ✔
+                                    </button>
+
                                 @else
-                                    <form action="{{ route('admin.survey.approve', $survey->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
-                                            Approve
+                                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $survey->user->no_wa ?? '') }}" 
+                                    target="_blank"
+                                    class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50">
+                                    Reschedule
+                                    </a>
+
+                                    @if(strtolower($survey->status) == 'pending')
+                                        <form action="{{ route('admin.survey.approve', $survey->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                                                Approve
+                                            </button>
+                                        </form>
+
+                                    @elseif(strtolower($survey->status) == 'approved')
+                                        <button type="button" disabled 
+                                                class="rounded-lg bg-blue-400 px-3 py-2 text-xs font-bold text-white cursor-not-allowed">
+                                            Approved
                                         </button>
-                                    </form>
+                                        <form action="{{ route('admin.survey.complete', $survey->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white hover:bg-green-700">
+                                                Selesai
+                                            </button>
+                                        </form>
+                                    @endif
+
                                 @endif
+
                             </div>
                         </td>
                     </tr>

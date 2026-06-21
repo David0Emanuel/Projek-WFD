@@ -76,20 +76,21 @@ class KamarController extends Controller
 
     public function survey()
     {
-        // $user = Auth::user();
-        // if (!$user) return redirect('/login');
-        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
         $user = Auth::user();
         if (!$user) return redirect('/login');
         
         // 1. Data Check-In khusus cabang admin
-        $checkins = Kamar::with('kos')
+        $checkins = Kamar::with(['kos', 'transaksis' => function($query) {
+                $query->whereIn('type', ['DP', 'DP Booking'])
+                      ->where('status_transaksi', 'Paid')
+                      ->latest();
+            }, 'transaksis.user'])
             ->where('kos_id', $user->kos_id) 
             ->where('status', 'Booking')
             ->get();
         
         // 2. Data Survey khusus cabang admin
-        $surveys = Survey::with(['kos'])
+        $surveys = Survey::with(['kos', 'user']) 
             ->where('kos_id', $user->kos_id) 
             ->whereDate('waktu_survey', '>=', now()->toDateString())
             ->orderBy('waktu_survey', 'asc')
@@ -305,5 +306,14 @@ class KamarController extends Controller
         }
 
         return redirect()->back()->with('success', $pesan);
+    }
+
+    public function completeSurvey($id)
+    {
+        $survey = Survey::findOrFail($id);
+        $survey->status = 'Selesai'; // Mengubah status menjadi Selesai
+        $survey->save();
+
+        return redirect()->back()->with('success', 'Survey telah selesai dilakukan. Baris terkunci.');
     }
 }

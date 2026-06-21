@@ -117,6 +117,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/kamar/update-detail', [\App\Http\Controllers\KamarController::class, 'updateDetail'])->name('kamar.update-detail');
     Route::post('/komplain/update', [KamarController::class, 'updateStatusKomplain'])->name('komplain.update');
     Route::post('/survey/approve/{id}', [KamarController::class, 'approveSurvey'])->name('survey.approve');
+    Route::post('/survey/complete/{id}', [KamarController::class, 'completeSurvey'])->name('survey.complete');
 });
 
 

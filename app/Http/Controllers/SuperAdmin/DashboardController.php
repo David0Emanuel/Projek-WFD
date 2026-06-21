@@ -28,15 +28,11 @@ class DashboardController extends Controller
         // 4. Hitung keluhan/maintenance tiket yang berstatus Pending
         $totalKomplain = MaintenanceTiket::where('status', 'Pending')->count();
 
-        // 5. Ambil 5 permintaan kunjungan/survey terbaru yang masih menunggu persetujuan
+        // Mengambil 5 aktivitas survey terupdate dari cabang manapun tanpa memandang status (Pending/Approved/Selesai)
         $surveys = Survey::with(['user', 'kos'])
-            ->where('status', 'Menunggu')
-            ->orWhere('status', 'Pending')
             ->latest()
             ->take(5)
             ->get();
-
-
 
         $cabangList = Kos::orderBy('nama', 'asc')->get();
 
@@ -52,7 +48,6 @@ class DashboardController extends Controller
     
     }
 
-    // Aksi untuk memperbarui status survey dari modal dashboard
     public function updateSurveyStatus(Request $request, $id)
     {
         $request->validate(['status' => 'required|in:Disetujui,Ditolak']);
