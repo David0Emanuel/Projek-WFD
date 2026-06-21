@@ -17,43 +17,35 @@
         @endguest
     </div>
 
-    <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        @forelse ($branches as $branch)
-            <article class="group flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-md">
-                <div class="flex flex-col gap-4 border-b border-gray-200/60 p-6">
-                    <div class="flex items-start justify-between gap-3">
-                        <h2 class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $branch->nama }}</h2>
-                        @if(($branch->available_kamar_count ?? 0) > 0)
-                            <span class="shrink-0 rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-green-700">Tersedia</span>
-                        @else
-                            <span class="shrink-0 rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-red-600">Penuh</span>
-                        @endif
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            @forelse ($branches as $branch)
+                <article class="group flex flex-col rounded-3xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-md sm:p-6">
+                    <h3 class="text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-600">{{ $branch->nama }}</h3>
+                    <p class="mt-1 text-sm text-gray-500 line-clamp-1">{{ $branch->alamat ?? 'Alamat belum tersedia' }}</p>
+                    
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="rounded-2xl bg-gray-50 p-3 text-center sm:p-4">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Total Kamar</p>
+                            <p class="mt-1 text-xl font-black text-gray-900">{{ $branch->kamars_count }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-green-50 p-3 text-center sm:p-4">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-green-600">Sisa Kosong</p>
+                            {{-- Catatan: Menggunakan variabel kamar_kosong_count dari Controller sebelumnya --}}
+                            <p class="mt-1 text-xl font-black text-green-700">{{ $branch->kamar_kosong_count ?? 0 }}</p>
+                        </div>
                     </div>
-                    <p class="text-sm leading-relaxed text-gray-600 line-clamp-2">{{ $branch->alamat ?? 'Alamat belum terisi' }}</p>
-                </div>
-                
-                <div class="grid grid-cols-2 divide-x divide-gray-200/60 border-b border-gray-200/60 bg-white p-2">
-                    <div class="p-4 text-center">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Kamar</p>
-                        <p class="mt-1 text-xl font-black text-gray-900">{{ $branch->kamars_count ?? 0 }}</p>
-                    </div>
-                    <div class="p-4 text-center">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-green-600">Sisa Kosong</p>
-                        <p class="mt-1 text-xl font-black text-green-700">{{ $branch->available_kamar_count ?? 0 }}</p>
-                    </div>
-                </div>
 
-                <div class="bg-white p-4 mt-auto">
-                    <a href="{{ route('visitor.branch.show', $branch->id) }}" class="block w-full rounded-2xl bg-blue-600 px-4 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-blue-700">
-                        Lihat Detail & Kamar
-                    </a>
+                    <div class="mt-auto pt-6">
+                        <a href="{{ route('visitor.branch.show', $branch->id) }}" class="block w-full rounded-2xl bg-blue-600 px-4 py-2.5 text-center text-sm font-bold text-white transition-colors hover:bg-blue-700">
+                            Detail Kamar
+                        </a>
+                    </div>
+                </article>
+            @empty
+                <div class="col-span-full rounded-3xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm font-medium text-gray-500">
+                    Belum ada cabang kos yang tersedia saat ini.
                 </div>
-            </article>
-        @empty
-            <div class="col-span-full rounded-3xl border border-dashed border-gray-300 bg-gray-50 p-10 text-center text-gray-500">
-                <p class="text-base font-medium">Belum ada cabang kos yang terdaftar.</p>
-            </div>
-        @endforelse
+            @endforelse
     </div>
 </section>
 @endsection

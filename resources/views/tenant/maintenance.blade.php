@@ -6,14 +6,13 @@
 @section('content')
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-    <!-- Kolom Kiri: Form Buat Tiket Keluhan -->
+    <!-- form maintenance -->
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
         <h3 class="text-sm font-bold text-gray-700 border-b border-gray-150 pb-3 mb-4">Buat Tiket Keluhan</h3>
         
         <form action="{{ route('tenant.maintenance.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             
-            <!-- Deskripsi Keluhan -->
             <div>
                 <label for="deskripsi" class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Deskripsi Detail Kerusakan</label>
                 <textarea name="deskripsi" id="deskripsi" rows="4" required placeholder="Jelaskan detail kerusakan..."
@@ -54,12 +53,38 @@
                                 <h4 class="text-sm font-bold text-gray-800">Keluhan #{{ $ticket->id }}</h4>
                                 <p class="text-xs text-gray-500 mt-0.5">{{ $ticket->deskripsi }}</p>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border 
-                                @if($ticket->status === 'Selesai') bg-green-100 text-green-700 border-green-300
-                                @elseif($ticket->status === 'Proses') bg-blue-100 text-blue-700 border-blue-300
-                                @else bg-gray-100 text-gray-600 border-gray-300 @endif uppercase">
-                                {{ $ticket->status === 'Proses' ? 'Berjalan' : ($ticket->status === 'Selesai' ? 'Selesai' : 'Pending') }}
-                            </span>
+                            
+                            <div class="flex flex-col items-end gap-1.5">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded border 
+                                    @if($ticket->status === 'Selesai') bg-green-100 text-green-700 border-green-300
+                                    @elseif($ticket->status === 'Proses') bg-blue-100 text-blue-700 border-blue-300
+                                    @else bg-gray-100 text-gray-600 border-gray-300 @endif uppercase text-center w-full">
+                                    {{ $ticket->status === 'Proses' ? 'Berjalan' : ($ticket->status === 'Selesai' ? 'Selesai' : 'Pending') }}
+                                </span>
+
+                                @if($ticket->status === 'Pending')
+                                    <form action="{{ route('tenant.maintenance.delete', $ticket->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" 
+                                                onclick="Swal.fire({
+                                                    title: 'Apakah Anda yakin?',
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#3085d6',
+                                                    cancelButtonColor: '#d33',
+                                                    confirmButtonText: 'Ya, hapus!'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        event.target.closest('form').submit();
+                                                    }
+                                                })"
+                                                class="text-[10px] px-2 py-1 font-bold bg-red-500 hover:bg-red-700 border rounded-md text-white cursor-pointer transition-colors">
+                                            Batalkan Tiket
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </div>
 
                         @if($ticket->foto)

@@ -169,6 +169,7 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 
     Route::get('/maintenance', [App\Http\Controllers\MaintenanceTicketController::class, 'index'])->name('maintenance');
     Route::post('/maintenance', [App\Http\Controllers\MaintenanceTicketController::class, 'store'])->name('maintenance.store');
+    Route::delete('/maintenance/{id}', [App\Http\Controllers\MaintenanceTicketController::class, 'delete'])->name('maintenance.delete');
 });
 
 
