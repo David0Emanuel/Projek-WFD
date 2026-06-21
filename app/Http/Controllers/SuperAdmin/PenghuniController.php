@@ -18,12 +18,12 @@ class PenghuniController extends Controller
     }
 
     public function show($id)
-    {
-        $penghuni = User::where('role', 'tenant')
-            ->with(['kamar.kos', 'transaksi', 'maintenanceTiket'])
-            ->findOrFail($id);
+{
+    $penghuni = User::where('role', 'tenant')
+        ->with(['kamar.kos', 'transaksis', 'maintenanceTikets']) //  SUDAH DIPERBAIKI
+        ->findOrFail($id);
 
-        return view('superadmin.penghuni.show', compact('penghuni'));
-    }
+    return view('superadmin.penghuni.show', compact('penghuni'));
+}
     
 }

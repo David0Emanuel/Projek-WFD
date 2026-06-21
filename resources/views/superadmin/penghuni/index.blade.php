@@ -23,48 +23,42 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse($penghuni as $i => $user)
-            @php
-                $sisaHari = $user->tanggal_selesaiSewa
-                    ? now()->diffInDays($user->tanggal_selesaiSewa, false)
-                    : null;
-            @endphp
-            <tr class="hover:bg-gray-50">
-                <td class="px-5 py-3 text-gray-400">{{ $penghuni->firstItem() + $i }}</td>
-                <td class="px-5 py-3 font-semibold text-gray-800">{{ $user->nama }}</td>
-                <td class="px-5 py-3 text-gray-500">{{ $user->no_wa ?? '-' }}</td>
-                <td class="px-5 py-3">
-                    @if($user->kamar)
-                        <span class="font-medium text-gray-800">Kamar {{ $user->kamar->nomor }}</span>
-                    @else
-                        <span class="text-gray-400">-</span>
-                    @endif
-                </td>
-                <td class="px-5 py-3 text-gray-500">
-                    {{ $user->kamar?->kos?->nama ?? '-' }}
-                </td>
-                <td class="px-5 py-3">
-                    @if($user->tanggal_selesaiSewa)
-                        {{ \Carbon\Carbon::parse($user->tanggal_selesaiSewa)->format('d M Y') }}
-                        @if($sisaHari !== null && $sisaHari <= 7 && $sisaHari >= 0)
-                            <span class="ml-1 text-xs font-bold text-red-500">({{ $sisaHari }} hari lagi)</span>
+                @php
+                    $sisaHari = $user->tanggal_selesaiSewa
+                        ? now()->startOfDay()->diffInDays($user->tanggal_selesaiSewa->startOfDay(), false)
+                        : null;
+                @endphp
+                <tr>
+                    <td class="px-5 py-3">{{ $loop->iteration }}</td>
+                    <td class="px-5 py-3 font-semibold text-gray-800">{{ $user->nama ?? '-' }}</td>
+                    <td class="px-5 py-3">{{ $user->no_wa }}</td>
+                    
+                    <td class="px-5 py-3">{{ $user->kamar?->nomor ?? '-' }}</td>
+                    <td class="px-5 py-3">{{ $user->kamar?->kos?->nama ?? '-' }}</td>
+                    
+                    <td class="px-5 py-3">
+                        @if($user->tanggal_selesaiSewa)
+                            {{ \Carbon\Carbon::parse($user->tanggal_selesaiSewa)->format('d M Y') }}
+                            @if($sisaHari !== null && $sisaHari <= 7 && $sisaHari >= 0)
+                                <span class="ml-1 text-xs font-bold text-red-500">({{ $sisaHari }} hari lagi)</span>
+                            @endif
+                        @else
+                            <span class="text-gray-400">-</span>
                         @endif
-                    @else
-                        <span class="text-gray-400">-</span>
-                    @endif
-                </td>
-                <td class="px-5 py-3 text-center">
-                    @if($sisaHari === null)
-                        <span class="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-500">Tidak Diketahui</span>
-                    @elseif($sisaHari < 0)
-                        <span class="rounded-full bg-red-100 px-2 py-1 text-[10px] font-bold text-red-700">Expired</span>
-                    @elseif($sisaHari <= 7)
-                        <span class="rounded-full bg-yellow-100 px-2 py-1 text-[10px] font-bold text-yellow-700">Hampir Habis</span>
-                    @else
-                        <span class="rounded-full bg-green-100 px-2 py-1 text-[10px] font-bold text-green-700">Aktif</span>
-                    @endif
-                </td>
-            </tr>
-            @empty
+                    </td>
+                    <td class="px-5 py-3 text-center">
+                        @if($sisaHari === null)
+                            <span class="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-500">Tidak Diketahui</span>
+                        @elseif($sisaHari < 0)
+                            <span class="rounded-full bg-red-100 px-2 py-1 text-[10px] font-bold text-red-700">Expired</span>
+                        @elseif($sisaHari <= 7)
+                            <span class="rounded-full bg-yellow-100 px-2 py-1 text-[10px] font-bold text-yellow-700">Hampir Habis</span>
+                        @else
+                            <span class="rounded-full bg-green-100 px-2 py-1 text-[10px] font-bold text-green-700">Aktif</span>
+                        @endif
+                    </td>
+                </tr>
+                @empty
             <tr>
                 <td colspan="7" class="px-5 py-10 text-center text-gray-400">Belum ada penghuni terdaftar.</td>
             </tr>

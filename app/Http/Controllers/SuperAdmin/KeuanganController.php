@@ -11,7 +11,6 @@ class KeuanganController extends Controller
 {
     public function index(Request $request)
     {
-        // Data untuk grafik — pendapatan 6 bulan terakhir
         $bulanLabels = [];
         $bulanData   = [];
 
@@ -24,7 +23,6 @@ class KeuanganController extends Controller
                 ->sum('total');
         }
 
-        // Statistik ringkasan pendapatan
         $totalPendapatan   = Transaksi::whereIn('status_transaksi', ['paid', 'Paid'])->sum('total');
         $pendapatanBulanIni = Transaksi::whereIn('status_transaksi', ['paid', 'Paid'])
             ->whereMonth('created_at', now()->month)
@@ -32,26 +30,32 @@ class KeuanganController extends Controller
             ->sum('total');
         $totalTransaksi    = Transaksi::whereIn('status_transaksi', ['paid', 'Paid'])->count();
 
-        // Tabel transaksi dengan filter fleksibel
         $query = Transaksi::with(['user', 'kamar.kos'])->latest();
 
+        // 1. Filter Status (Mengantisipasi perbedaan huruf besar/kecil di DB)
         if ($request->filled('status')) {
-            $query->where('status_transaksi', 'LIKE', $request->status);
-        }
-        
-        if ($request->filled('type')) {
-            if (strtolower($request->type) === 'dp') {
-                $query->where(function($q) {
-                    $q->where('type', 'DP')->orWhere('type', 'DP Booking');
-                });
+            $status = strtolower($request->status);
+            if ($status === 'paid') {
+                $query->whereIn('status_transaksi', ['paid', 'Paid', 'PAID']);
             } else {
-                $query->where('type', 'LIKE', $request->type);
+                $query->whereIn('status_transaksi', ['unpaid', 'Unpaid', 'UNPAID', 'pending', 'Pending']);
             }
         }
         
+        // 2. Filter Tipe 
+        if ($request->filled('type')) {
+            $type = strtolower($request->type);
+            if ($type === 'dp') {
+                $query->whereIn('type', ['DP', 'DP Booking', 'dp']);
+            } elseif ($type === 'tagihan') {
+                $query->whereIn('type', ['Bulanan', 'bulanan', 'Tagihan', 'tagihan', 'Tagihan Bulanan']);
+            }
+        }
+        
+        // 3. Filter Bulan 
         if ($request->filled('bulan')) {
-            $query->whereMonth('created_at', $request->bulan)
-                  ->whereYear('created_at', now()->year);
+            $query->whereMonth('created_at', $request->bulan);
+            $query->whereYear('created_at', now()->year);
         }
 
         $transaksi = $query->paginate(15)->withQueryString();
@@ -59,7 +63,6 @@ class KeuanganController extends Controller
         // Pendapatan per cabang untuk grafik donut
         $pendapatanPerCabang = Kos::withSum(['kamars as total_pendapatan' => function ($q) {
                 // Catatan: Model Kos berelasi ke Kamar, Kamar berelasi ke Transaksi
-                // Menggunakan subquery relasi melintasi kamars
                 $q->whereHas('transaksis', function($sub) {
                     $sub->whereIn('status_transaksi', ['paid', 'Paid']);
                 })->join('transaksis', 'kamars.id', '=', 'transaksis.kamar_id');
