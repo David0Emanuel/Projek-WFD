@@ -77,4 +77,47 @@
         </div>
     </section>
 </div>
+
+{{-- BAGIAN BARU: RIWAYAT TRANSAKSI / TAGIHAN --}}
+<div class="mt-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4">
+        <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2 class="text-base font-bold text-gray-800">Riwayat Tagihan & Booking</h2>
+    </div>
+
+    <div class="space-y-4">
+        @forelse(isset($transaksis) ? $transaksis : [] as $trx)
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div>
+                    <p class="text-xs font-bold text-gray-500 uppercase">{{ $trx->type }} Booking</p>
+                    <p class="text-lg font-bold text-gray-800">Rp {{ number_format($trx->total, 0, ',', '.') }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Order ID: {{ $trx->id }} | Tgl: {{ $trx->created_at->format('d M Y') }}</p>
+                </div>
+                
+                <div class="mt-4 sm:mt-0 flex flex-col items-start sm:items-end gap-2">
+                    @if(strtolower($trx->status_transaksi) == 'unpaid' || strtolower($trx->status_transaksi) == 'pending')
+                        <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Belum Dibayar</span>
+                        
+                        {{-- INI ADALAH TOMBOL SAKTI UNTUK MELANJUTKAN PEMBAYARAN --}}
+                        <a href="{{ route('pembayaran.checkout', $trx->id) }}" class="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-blue-700 shadow-sm cursor-pointer">
+                            Lanjutkan Pembayaran
+                        </a>
+
+                    @elseif(strtolower($trx->status_transaksi) == 'paid' || strtolower($trx->status_transaksi) == 'settlement')
+                        <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">Lunas</span>
+                        <p class="text-[10px] text-gray-500">Menunggu Check-in Admin</p>
+                    @else
+                        <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">{{ ucfirst($trx->status_transaksi) }}</span>
+                    @endif
+                </div>
+            </div>
+        @empty
+            <div class="text-center py-6 text-sm text-gray-500 italic border-2 border-dashed border-gray-200 rounded-xl">
+                Anda belum memiliki riwayat tagihan booking.
+            </div>
+        @endforelse
+    </div>
+</div>
 @endsection

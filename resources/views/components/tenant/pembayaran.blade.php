@@ -10,10 +10,10 @@
         <p class="text-xs text-gray-400 mt-1">Order ID: {{ $orderId }}</p>
     </div>
 
-    <div class="space-y-4 border-b pb-4 mb-4">
+    <div class="space-y-4 border-b pb-4 mb-4 border-dashed border-gray-200">
         <div class="flex justify-between text-sm">
             <span class="text-gray-500">Tipe Pembayaran:</span>
-            <span class="font-semibold text-gray-800">{{ $transaksi->type }}</span>
+            <span class="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">{{ $transaksi->type }}</span>
         </div>
         <div class="flex justify-between text-sm">
             <span class="text-gray-500">Nama Penyewa:</span>
@@ -22,11 +22,11 @@
     </div>
 
     <div class="flex justify-between items-center mb-6">
-        <span class="text-gray-600 font-medium">Total yang harus dibayar:</span>
+        <span class="text-gray-600 font-medium text-sm uppercase">Total yang harus dibayar:</span>
         <span class="text-2xl font-black text-blue-600">Rp {{ number_format($totalBayar, 0, ',', '.') }}</span>
     </div>
 
-    <button id="pay-button" class="w-full py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 cursor-pointer transition-all">
+    <button id="pay-button" class="w-full py-4 bg-green-500 text-white font-bold rounded-2xl hover:bg-green-600 cursor-pointer transition-all hover:shadow-md">
         BAYAR SEKARANG 
     </button>
 </div>
@@ -37,21 +37,48 @@
     const payButton = document.getElementById('pay-button');
     
     payButton.addEventListener('click', function () {
-        // 2. Panggil snap.pay dengan token yang dikirim dari controller
+        // Panggil snap.pay dengan token yang dikirim dari controller
         window.snap.pay('{{ $snapToken }}', {
             onSuccess: function(result){
-                alert("Pembayaran sukses! Halaman akan diarahkan ulang.");
-                window.location.href = "{{ route('tenant.dashboard') }}";
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pembayaran Sukses!',
+                    text: 'Tagihan Anda berhasil dibayar lunas.',
+                    confirmButtonColor: '#16a34a', // Warna Hijau
+                    confirmButtonText: 'Kembali ke Dashboard'
+                }).then((result) => {
+                    // Pindah halaman SETELAH tombol SweetAlert ditekan
+                    window.location.href = "{{ route('tenant.dashboard') }}";
+                });
             },
             onPending: function(result){
-                alert("Menunggu pembayaran Anda.");
-                window.location.href = "{{ route('tenant.dashboard') }}";
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Menunggu Pembayaran',
+                    text: 'Silakan selesaikan instruksi pembayaran Anda.',
+                    confirmButtonColor: '#2563eb', // Warna Biru
+                    confirmButtonText: 'Cek Dashboard'
+                }).then((result) => {
+                    window.location.href = "{{ route('tenant.dashboard') }}";
+                });
             },
             onError: function(result){
-                alert("Pembayaran gagal, silahkan coba lagi.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Pembayaran Gagal',
+                    text: 'Terjadi kesalahan pada sistem pembayaran, silakan coba lagi.',
+                    confirmButtonColor: '#dc2626', // Warna Merah
+                    confirmButtonText: 'Tutup'
+                });
             },
             onClose: function(){
-                alert('Anda menutup popup sebelum menyelesaikan pembayaran.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pembayaran Dibatalkan',
+                    text: 'Anda menutup layar sebelum menyelesaikan pembayaran.',
+                    confirmButtonColor: '#f59e0b', // Warna Kuning
+                    confirmButtonText: 'OK'
+                });
             }
         });
     });

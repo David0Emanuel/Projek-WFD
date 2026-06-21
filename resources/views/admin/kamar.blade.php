@@ -374,7 +374,12 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Gagal Menyimpan Data:\n' + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Menyimpan Data',
+                text: error.message,
+                confirmButtonColor: '#d33'
+            });
         })
         .finally(() => {
             btnText.innerText = originalText;

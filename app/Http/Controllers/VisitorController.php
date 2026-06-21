@@ -46,7 +46,13 @@ class VisitorController extends Controller
         $branchesCount = Kos::count();
         $availableRoomsCount = Kamar::where('status', 'Kosong')->count();
 
-        return view('visitor.profile', compact('user', 'branchesCount', 'availableRoomsCount'));
+
+       $transaksis = \App\Models\Transaksi::where('user_id', $user->id)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+        // KODE YANG SUDAH DIPERBAIKI:
+        return view('visitor.profile', compact('user', 'branchesCount', 'availableRoomsCount', 'transaksis'));
     }
     public function show($id)
     {
@@ -83,7 +89,7 @@ class VisitorController extends Controller
          $transaksi = Transaksi::create([
             'user_id' => $userId,
             'kamar_id' => $kamar->id,
-            'total' => 500000, // Misal nominal tetap DP Booking Rp 500.000
+            'total' => $kamar->harga * 0.5, 
             'status_transaksi' => 'Unpaid',
             'type' => 'DP',
         ]);

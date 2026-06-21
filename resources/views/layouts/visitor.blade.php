@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'KosInAja') - KosInAja</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="flex min-h-screen flex-col bg-gray-50 font-sans text-gray-900">
     <header class="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md">
