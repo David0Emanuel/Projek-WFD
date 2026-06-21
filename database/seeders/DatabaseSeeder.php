@@ -53,16 +53,5 @@ class DatabaseSeeder extends Seeder
             'kos_id' => 1, 
             'kamar_id' => null,
         ]);
-
-        User::create([
-            'username' => 'user1',
-            'nama' => 'User 1',
-            'email' => 'user1@kosinaja.com',
-            'no_wa' => '084444444444',
-            'password' => Hash::make('user123'),
-            'role' => 'tenant',
-            'kos_id' => null,
-            'kamar_id' => null,
-        ]);
     }
 }

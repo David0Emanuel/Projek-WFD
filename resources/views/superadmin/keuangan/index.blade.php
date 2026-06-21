@@ -43,13 +43,11 @@
 
 <!-- grafik -->
 <section class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-    {{-- Line Chart Pendapatan 6 Bulan --}}
     <div class="lg:col-span-2 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <h3 class="text-sm font-bold text-gray-700 mb-4">Pendapatan 6 Bulan Terakhir</h3>
         <canvas id="chartPendapatan" height="100"></canvas>
     </div>
 
-    {{-- Donut Chart Per Cabang --}}
     <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <h3 class="text-sm font-bold text-gray-700 mb-4">Pendapatan per Cabang</h3>
         <canvas id="chartCabang" height="180"></canvas>
@@ -62,16 +60,21 @@
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-slate-50 px-5 py-3">
         <h3 class="text-sm font-bold text-gray-700">Riwayat Transaksi</h3>
         <form method="GET" action="{{ route('superadmin.keuangan.index') }}" class="flex flex-wrap gap-2">
+            {{-- Dropdown Tipe --}}
             <select name="type" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
                 <option value="">Semua Tipe</option>
-                <option value="dp" {{ request('type') === 'dp' ? 'selected' : '' }}>DP Booking</option>
-                <option value="tagihan" {{ request('type') === 'tagihan' ? 'selected' : '' }}>Tagihan Bulanan</option>
+                <option value="dp" {{ request('type') == 'dp' ? 'selected' : '' }}>DP Booking</option>
+                <option value="tagihan" {{ request('type') == 'tagihan' ? 'selected' : '' }}>Tagihan Bulanan</option>
             </select>
+
+            {{-- Dropdown Status --}}
             <select name="status" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
                 <option value="">Semua Status</option>
-                <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Lunas</option>
-                <option value="unpaid" {{ request('status') === 'unpaid' ? 'selected' : '' }}>Belum Lunas</option>
+                <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Lunas</option>
+                <option value="unpaid" {{ request('status') == 'unpaid' ? 'selected' : '' }}>Belum Lunas</option>
             </select>
+
+            {{-- Dropdown Bulan --}}
             <select name="bulan" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
                 <option value="">Semua Bulan</option>
                 @for($m = 1; $m <= 12; $m++)
@@ -80,9 +83,11 @@
                     </option>
                 @endfor
             </select>
+
             <button type="submit" class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700 cursor-pointer">
                 Filter
             </button>
+            
             @if(request()->hasAny(['type', 'status', 'bulan']))
                 <a href="{{ route('superadmin.keuangan.index') }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">
                     Reset
@@ -114,7 +119,7 @@
                         <span class="text-gray-400">/ {{ $trx->kamar?->kos?->nama ?? '-' }}</span>
                     </td>
                     <td class="px-5 py-3">
-                        @if($trx->type === 'dp')
+                        @if(in_array(strtolower($trx->type), ['dp', 'dp booking']))
                             <span class="rounded-full bg-purple-100 px-2 py-1 text-[10px] font-bold text-purple-700">DP Booking</span>
                         @else
                             <span class="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold text-blue-700">Tagihan Bulanan</span>
@@ -124,7 +129,7 @@
                         Rp {{ number_format($trx->total, 0, ',', '.') }}
                     </td>
                     <td class="px-5 py-3 text-center">
-                        @if($trx->status_transaksi === 'paid')
+                        @if(strtolower($trx->status_transaksi) === 'paid')
                             <span class="rounded-full bg-green-100 px-2 py-1 text-[10px] font-bold text-green-700">Lunas</span>
                         @else
                             <span class="rounded-full bg-red-100 px-2 py-1 text-[10px] font-bold text-red-700">Belum Lunas</span>

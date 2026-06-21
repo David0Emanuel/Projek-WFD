@@ -171,9 +171,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout');
 });
 
-// Webhook untuk Midtrans Payment Gateway (TETAP PUBLIC)
-Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-//karena laravel itu otomati ngcek csrf token dri pihak luar
-//sedangkan request pembayaran kan dri pihak luar / server midtrans,dimana ga ada token csrf
-//kalo ga pakai withoutmiddleware, request dari midtrans bakal ditolak sama laravel.
+// Webhook untuk Midtrans Payment Gateway 
+Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment']);
