@@ -30,7 +30,6 @@
                         </div>
                         <div class="rounded-2xl bg-green-50 p-3 text-center sm:p-4">
                             <p class="text-[10px] font-bold uppercase tracking-wider text-green-600">Sisa Kosong</p>
-                            {{-- Catatan: Menggunakan variabel kamar_kosong_count dari Controller sebelumnya --}}
                             <p class="mt-1 text-xl font-black text-green-700">{{ $branch->available_kamar_count ?? 0 }}</p>
                         </div>
                     </div>

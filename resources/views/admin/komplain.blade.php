@@ -6,7 +6,6 @@
 @section('content')
 <div class="space-y-6">
 
-    {{-- Alert Sukses (Muncul setelah tombol ditekan) --}}
     @if(session('success'))
         <div class="rounded-xl border border-green-200 bg-green-50 p-4 shadow-sm">
             <div class="flex items-center gap-3 text-green-800">
@@ -21,7 +20,6 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         @forelse($komplains as $tiket)
         
-        {{-- Kita simpan status dalam variabel agar kodenya lebih rapi --}}
         @php
             $status = strtolower($tiket->status);
         @endphp
@@ -48,7 +46,6 @@
             </div>
             
             <div class="border-t border-gray-100 bg-white p-6">
-                {{-- Kondisi 1: Tombol Tunjuk Teknisi --}}
                 @if($status == 'pending')
                     <form action="{{ route('admin.komplain.update') }}" method="POST">
                         @csrf
@@ -59,7 +56,6 @@
                         </button>
                     </form>
                     
-                {{-- Kondisi 2: Tombol Konfirmasi Selesai --}}
                 @elseif($status == 'proses')
                     <form action="{{ route('admin.komplain.update') }}" method="POST">
                         @csrf
@@ -70,7 +66,6 @@
                         </button>
                     </form>
                     
-                {{-- Kondisi 3: Tiket Sudah Selesai (Tombol Mati) --}}
                 @else
                     <button type="button" disabled class="w-full rounded-xl bg-gray-100 px-4 py-3 text-sm font-bold text-gray-400 cursor-not-allowed">
                         Pekerjaan Telah Selesai

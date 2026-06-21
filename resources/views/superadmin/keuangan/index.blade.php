@@ -4,7 +4,7 @@
 
 @section('content')
 
-{{-- Stat Cards --}}
+<!-- dashboard cards -->
 <section class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
     <div class="flex items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <div class="mr-4 rounded-full bg-blue-100 p-3 text-blue-600">
@@ -41,7 +41,7 @@
     </div>
 </section>
 
-{{-- Grafik --}}
+<!-- grafik -->
 <section class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
     {{-- Line Chart Pendapatan 6 Bulan --}}
     <div class="lg:col-span-2 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -57,7 +57,7 @@
     </div>
 </section>
 
-{{-- Filter & Tabel Transaksi --}}
+<!-- filter n tabel transaksi -->
 <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-slate-50 px-5 py-3">
         <h3 class="text-sm font-bold text-gray-700">Riwayat Transaksi</h3>
@@ -150,7 +150,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // ===== LINE CHART: Pendapatan 6 Bulan =====
+    // LINE CHART: Pendapatan 6 Bulan
     const ctxLine = document.getElementById('chartPendapatan').getContext('2d');
     new Chart(ctxLine, {
         type: 'line',
@@ -189,7 +189,7 @@
         }
     });
 
-    // ===== DONUT CHART: Per Cabang =====
+    // DONUT CHART: Per Cabang
     const cabangData   = {!! json_encode($pendapatanPerCabang) !!};
     const cabangLabels = cabangData.map(c => c.nama);
     const cabangValues = cabangData.map(c => c.total);

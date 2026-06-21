@@ -4,14 +4,12 @@
 
 @section('content')
 
-{{-- Alert Sukses --}}
 @if(session('success'))
     <div class="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-700">
         {{ session('success') }}
     </div>
 @endif
 
-{{-- Header + Tombol Tambah --}}
 <div class="mb-6 flex items-center justify-between">
     <p class="text-sm text-gray-500">Total <span class="font-bold text-gray-800">{{ $cabang->total() }}</span> cabang terdaftar</p>
     <button onclick="openModal('modal-tambah')" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 cursor-pointer flex items-center gap-2">
@@ -22,7 +20,6 @@
     </button>
 </div>
 
-{{-- Tabel Data Cabang --}}
 <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
     <table class="w-full text-left text-sm text-gray-600">
         <thead class="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200">
@@ -86,9 +83,6 @@
     </div>
 </div>
 
-{{-- ========================================== --}}
-{{-- ============ MODAL TAMBAH ================ --}}
-{{-- ========================================== --}}
 <div id="modal-tambah" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
     <div class="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between bg-blue-600 px-5 py-4 sticky top-0 z-10">
@@ -177,9 +171,6 @@
     </div>
 </div>
 
-{{-- ========================================== --}}
-{{-- ============== MODAL EDIT ================ --}}
-{{-- ========================================== --}}
 <div id="modal-edit" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
     <div class="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between bg-amber-500 px-5 py-4 sticky top-0 z-10">
@@ -271,9 +262,6 @@
     </div>
 </div>
 
-{{-- ========================================== --}}
-{{-- ============= MODAL HAPUS ================ --}}
-{{-- ========================================== --}}
 <div id="modal-hapus" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
     <div class="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between bg-red-600 px-5 py-4">

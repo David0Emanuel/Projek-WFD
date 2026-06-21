@@ -4,7 +4,6 @@
 
 @section('content')
 
-    {{-- Notifikasi Sukses --}}
     @if(session('success'))
         <div class="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-700">
             {{ session('success') }}

@@ -58,7 +58,6 @@
 
         <div class="space-y-8">
             
-            {{-- BAGIAN FOTO UTAMA KOS --}}
             <div class="aspect-video w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm">
                 @if(isset($branch->foto) && $branch->foto)
                     <img src="{{ asset('storage/' . $branch->foto) }}" alt="Foto {{ $branch->nama }}" class="h-full w-full object-cover">
@@ -72,7 +71,7 @@
                 @endif
             </div>
 
-            {{-- BAGIAN DESKRIPSI KOS (Ditambahkan ke sini) --}}
+            <!-- deskripsi -->
             <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-gray-900">Tentang {{ $branch->nama }}</h2>
                 <div class="mt-3 text-sm text-gray-600 leading-relaxed">
@@ -99,7 +98,6 @@
                         
                         <article class="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-md">
                             <div class="aspect-[4/3] w-full border-b border-gray-100 bg-gray-100">
-                                {{-- Nanti foto_kamar akan dipanggil di sini --}}
                                 @if(isset($contohKamar->foto_kamar) && $contohKamar->foto_kamar)
                                     <img src="{{ asset('storage/' . $contohKamar->foto_kamar) }}" alt="Kamar {{ $tipe }}" class="h-full w-full object-cover">
                                 @else
@@ -127,17 +125,15 @@
                 </div>
             </div>
 
-            {{-- CATATAN: Ini masih bersifat Statis (Hardcode) sampai kita mengupdate database tabel Kamar --}}
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 
-                {{-- KOTAK SPESIFIKASI --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                     <h2 class="text-lg font-bold text-gray-900">Spesifikasi Kamar Utama</h2>
                     <ul class="mt-4 space-y-3 text-sm text-gray-600">
                         @php $contohKamar = isset($branch) && $branch->kamars->count() > 0 ? $branch->kamars->first() : null; @endphp
                         
                         @if($contohKamar && $contohKamar->spesifikasi)
-                            {{-- Memecah teks koma menjadi list ke bawah --}}
+                            <!-- Memecah teks koma menjadi list ke bawah -->
                             @foreach(explode(',', $contohKamar->spesifikasi) as $spek)
                                 <li class="flex items-center gap-3"><span class="text-blue-500">❖</span> {{ trim($spek) }}</li>
                             @endforeach
@@ -147,11 +143,11 @@
                     </ul>
                 </div>
 
-                {{-- KOTAK FASILITAS --}}
+            <!-- fasilitas -->
                 <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                     <h2 class="text-lg font-bold text-gray-900">Fasilitas Tersedia</h2>
                     <ul class="mt-4 space-y-3 text-sm text-gray-600">
-                        @if($contohKamar && $contohKamar->fasilitas)
+                        <!-- Memecah teks koma menjadi list ke bawah -->
                             @foreach(explode(',', $contohKamar->fasilitas) as $fasilitas)
                                 <li class="flex items-center gap-3"><span class="text-green-500">✓</span> {{ trim($fasilitas) }}</li>
                             @endforeach
@@ -170,7 +166,6 @@
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Mulai Dari</p>
                 <div class="mt-1 flex items-end gap-1">
                     <span class="text-3xl font-black text-gray-900">
-                        {{-- Logika otomatis mencari harga terendah --}}
                         Rp {{ isset($branch) && $branch->kamars->count() > 0 ? number_format($branch->kamars->min('harga'), 0, ',', '.') : '0' }}
                     </span>
                     <span class="mb-1 text-sm font-medium text-gray-500">/ bulan</span>

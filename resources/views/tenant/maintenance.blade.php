@@ -36,7 +36,6 @@
         </form>
     </div>
 
-    <!-- Kolom Kanan: Lacak Progres Perbaikan -->
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col">
         <h3 class="text-sm font-bold text-gray-700 border-b border-gray-150 pb-3 mb-4">Lacak Progres Perbaikan</h3>
         
@@ -96,12 +95,9 @@
                             </div>
                         @endif
 
-                        <!-- Visual Timeline Tracker -->
                         <div class="mt-4 border-t border-gray-200 pt-4 space-y-4 relative">
-                            <!-- Garis vertikal penghubung titik timeline -->
                             <div class="absolute left-[11px] top-6 bottom-6 w-0.5 bg-gray-200"></div>
 
-                            <!-- Tahap 1: Selesai Ditangani -->
                             <div class="flex items-start gap-3 relative z-10">
                                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 
                                     @if($ticket->status === 'Selesai') bg-green-500 border-green-500 text-white
@@ -118,7 +114,6 @@
                                 </div>
                             </div>
 
-                            <!-- Tahap 2: Diproses -->
                             <div class="flex items-start gap-3 relative z-10">
                                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 
                                     @if($ticket->status === 'Proses' || $ticket->status === 'Selesai') bg-blue-500 border-blue-500 text-white
@@ -140,7 +135,6 @@
                                 </div>
                             </div>
 
-                            <!-- Tahap 3: Tiket Berhasil Diajukan -->
                             <div class="flex items-start gap-3 relative z-10">
                                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 bg-blue-500 border-blue-500 text-white">
                                     &bull;
@@ -165,7 +159,6 @@
 
 </div>
 
-<!-- Popup Sukses Submit (Yellow Modal Card) -->
 @if(session('success'))
 <div id="success-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onclick="closeSuccessModal()">
     <div class="w-full max-w-xs bg-amber-400 rounded-lg border-2 border-gray-300 shadow-xl p-6 text-center transform transition-all" onclick="event.stopPropagation()">

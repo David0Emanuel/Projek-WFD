@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-// --- Controllers ---
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\TransaksiController;
@@ -11,20 +10,15 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\MaintenanceTicketController;
 use App\Http\Controllers\KamarController;
 
-// --- Super Admin Controllers ---
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\CabangController;
 use App\Http\Controllers\SuperAdmin\PenghuniController;
 use App\Http\Controllers\SuperAdmin\KeuanganController;
 
-// Models
 use App\Models\Transaksi;
 
 
-// =====================================================================
-// 1. VISITOR ROUTES (PUBLIC & TERLINDUNGI)
-// =====================================================================
-// Rute publik (Bebas diakses tanpa login)
+// 1. VISITOR
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
 Route::post('/daftar-cabang/survey', [VisitorController::class, 'storeSurvey'])->name('visitor.survey.store');
@@ -37,10 +31,7 @@ Route::middleware(['auth', 'role:visitor'])->prefix('visitor')->name('visitor.')
 });
 
 
-// =====================================================================
-// 2. AUTHENTICATION ROUTES (TERHUBUNG DATABASE)
-// =====================================================================
-// Rute untuk yang belum login (Guest)
+// 2. AUTHENTICATION (TERHUBUNG DATABASE)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
@@ -48,13 +39,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
 });
 
-// Rute Logout (Wajib login dulu)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 
-// =====================================================================
-// 3. SUPER ADMIN ROUTES (TERKUNCI MIDDLEWARE)
-// =====================================================================
+// 3. SUPER ADMIN (MIDDLEWARE)
 Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     
     // Dasbor Utama & Pengumuman
@@ -105,9 +93,7 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->name('sup
 });
 
 
-// =====================================================================
-// 4. ADMIN CABANG ROUTES (TERKUNCI MIDDLEWARE)
-// =====================================================================
+// 4. ADMIN CABANG(MIDDLEWARE)
 Route::middleware(['auth', 'role:admin_cabang'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [KamarController::class, 'index'])->name('dashboard');
     Route::get('/kamar', [KamarController::class, 'kamar'])->name('kamar');
@@ -125,9 +111,7 @@ Route::middleware(['auth', 'role:admin_cabang'])->prefix('admin')->name('admin.'
 });
 
 
-// =====================================================================
-// 5. TENANT ROUTES (TERKUNCI MIDDLEWARE)
-// =====================================================================
+// 5. TENANT (MIDDLEWARE)
 Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->name('tenant.')->group(function () {
     // Rute Dashboard Utama Tenant
     Route::get('/dashboard', function () {
@@ -177,9 +161,7 @@ Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->name('tenant.')->g
 });
 
 
-// =====================================================================
 // 6. TRANSAKSI & WEBHOOK GLOBAL
-// =====================================================================
 // Rute Transaksi (Wajib Login)
 Route::middleware(['auth'])->group(function () {
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');

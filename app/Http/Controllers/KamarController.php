@@ -17,7 +17,6 @@ class KamarController extends Controller
         $user = Auth::user();
         if (!$user) return redirect('/login'); 
 
-        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
 
         // 1. FILTER KAMAR BERDASARKAN CABANG ADMIN
         $kamarQuery = Kamar::where('kos_id', $user->kos_id);
@@ -26,7 +25,7 @@ class KamarController extends Controller
         $terisiCount = (clone $kamarQuery)->where('status', 'Terisi')->count();
         $occupancyRate = $totalKamar > 0 ? round(($terisiCount / $totalKamar) * 100) : 0;
 
-        // 2. FILTER TRANSAKSI (Melalui relasi kamar -> kos_id)
+        // 2. FILTER TRANSAKSI
         $waitingCheckinCount = Transaksi::where('type', 'DP')
             ->where('status_transaksi', 'Paid')
             ->whereHas('kamar', function ($query) use ($user) {
@@ -34,7 +33,7 @@ class KamarController extends Controller
             })
             ->count();
 
-        // 3. FILTER TIKET KOMPLAIN (Melalui relasi kamar -> kos_id)
+        // 3. FILTER TIKET KOMPLAIN
         $pendingTiketCount = MaintenanceTiket::where('status', 'Pending')
             ->whereHas('kamar', function ($query) use ($user) {
                 $query->where('kos_id', $user->kos_id);
@@ -59,9 +58,6 @@ class KamarController extends Controller
 
     public function kamar()
     {
-        // $user = Auth::user();
-        // if (!$user) return redirect('/login');
-        // $user = (object) ['kos_id' => 1];   //buat ngetes akses database admin cabang beda
         $user = Auth::user();
         if (!$user) return redirect('/login');
 
@@ -79,7 +75,7 @@ class KamarController extends Controller
         $user = Auth::user();
         if (!$user) return redirect('/login');
         
-        // 1. Data Check-In khusus cabang admin
+        // 1. Data Check-In
         $checkins = Kamar::with(['kos', 'transaksis' => function($query) {
                 $query->whereIn('type', ['DP', 'DP Booking'])
                       ->where('status_transaksi', 'Paid')
@@ -89,7 +85,7 @@ class KamarController extends Controller
             ->where('status', 'Booking')
             ->get();
         
-        // 2. Data Survey khusus cabang admin
+        // 2. Data Survey
         $surveys = Survey::with(['kos', 'user']) 
             ->where('kos_id', $user->kos_id) 
             ->whereDate('waktu_survey', '>=', now()->toDateString())
@@ -108,7 +104,6 @@ class KamarController extends Controller
             ->whereHas('kamar', function ($query) use ($user) {
                 $query->where('kos_id', $user->kos_id);
             })
-            // 👇 Tambahkan 1 baris ini agar tiket 'Selesai' hilang dari layar Admin 👇
             ->whereIn('status', ['Pending', 'Proses']) 
             ->orderBy('created_at', 'desc')
             ->get();
@@ -116,16 +111,12 @@ class KamarController extends Controller
         return view('admin.komplain', compact('komplains'));
     }
 
-    // ====================================================================
-    // FUNGSI AKSI DI BAWAH INI TETAP SAMA (Tidak perlu ada yg diubah)
-    // ====================================================================
-
-    // FUNGSI UNTUK MENYIMPAN TAGIHAN & FOTO METERAN
+    // MENYIMPAN TAGIHAN & FOTO METERAN
     public function storeMeteran(Request $request)
     {
         $request->validate([
             'kamar_id' => 'required|exists:kamars,id',
-            'user_id' => 'required|exists:users,id', // Diambil dari input hidden form
+            'user_id' => 'required|exists:users,id',
             'total' => 'required|numeric|min:0',
             'angka_meteran' => 'required|integer|min:0',
             'foto_meteran' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
@@ -138,7 +129,7 @@ class KamarController extends Controller
            $fotoPath = $file->storeAs('meteran', $filename, 'public'); 
         }
 
-        // Buat TRANSAKSI BARU khusus listrik yang terpisah dari uang kos
+        // TRANSAKSI BARU khusus listrik terpisah dari uang kos
         Transaksi::create([
             'user_id' => $request->user_id,
             'kamar_id' => $request->kamar_id,
@@ -154,7 +145,7 @@ class KamarController extends Controller
         return redirect()->back()->with('success', 'Tagihan Token Listrik berhasil dikirim ke tenant tersebut.');
     }
 
-    // FUNGSI UNTUK MENGUBAH STATUS KAMAR MENJADI MAINTENANCE
+    // FUNGSI MENGUBAH STATUS KAMAR
     public function updateMaintenance(Request $request)
     {
         $request->validate([
@@ -168,7 +159,7 @@ class KamarController extends Controller
         return redirect()->back()->with('success', 'Status kamar berhasil diubah. Kamar kini dalam perbaikan dan tidak bisa dibooking.');
     }
 
-    // FUNGSI UNTUK MENGEMBALIKAN STATUS KAMAR JADI KOSONG
+    // FUNGSI MENGEMBALIKAN STATUS KAMAR
     public function markAsKosong(Request $request)
     {
         $request->validate([
@@ -182,7 +173,7 @@ class KamarController extends Controller
         return redirect()->back()->with('success', 'Perbaikan selesai! Kamar telah dikembalikan ke status Kosong dan siap disewakan.');
     }
 
-    // FUNGSI UNTUK MELAKUKAN CHECK-IN
+    // FUNGSI MELAKUKAN CHECK-IN
     public function checkin(Request $request)
     {
         // 1. Validasi kamar yang diklik
@@ -201,7 +192,7 @@ class KamarController extends Controller
                         ->latest()
                         ->first();
 
-        // 3. Jika ketemu, angkat dia jadi Tenant!
+        // 3. Jika ketemu, ganti role jadi Tenant
         if ($transaksi && $transaksi->user) {
             $transaksi->user->update([
                 'role' => 'tenant',
@@ -220,7 +211,7 @@ class KamarController extends Controller
         return redirect()->back()->with('success', 'Check-in berhasil! Kunci telah diserahkan dan Visitor resmi menjadi Tenant.');
     }
 
-    // FUNGSI UNTUK MENGUBAH STATUS TIKET KOMPLAIN
+    // FUNGSI MENGUBAH STATUS TIKET KOMPLAIN
     public function updateStatusKomplain(Request $request)
     {
         // 1. Validasi input
@@ -311,7 +302,7 @@ class KamarController extends Controller
     public function completeSurvey($id)
     {
         $survey = Survey::findOrFail($id);
-        $survey->status = 'Selesai'; // Mengubah status menjadi Selesai
+        $survey->status = 'Selesai';
         $survey->save();
 
         return redirect()->back()->with('success', 'Survey telah selesai dilakukan. Baris terkunci.');

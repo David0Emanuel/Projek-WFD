@@ -34,7 +34,6 @@
         @forelse ($kamars as $kamar)
         <div class="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
             
-            {{-- HEADER KARTU KAMAR --}}
             <div>
                 <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                     <h3 class="text-lg font-bold text-gray-900">Kamar {{ $kamar->nomor }}</h3>
@@ -50,7 +49,6 @@
                     @endif
                 </div>
                 
-                {{-- LABEL TIPE DAN HARGA KAMAR --}}
                 <div class="mt-3 flex flex-col items-start gap-1">
                     <span class="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200">
                         {{ strtoupper($kamar->tipe_kamar ?? 'STANDARD') }}
@@ -92,11 +90,10 @@
                     </button>
                 @endif
 
-                {{-- TOMBOL EDIT SPESIFIKASI (Tampil di semua status kamar) --}}
                 <button type="button" 
                     onclick="openEditKamarModal({{ $kamar->id }}, '{{ $kamar->nomor }}', '{{ $kamar->tipe_kamar ?? '' }}', {{ $kamar->harga ?? 0 }}, '{{ addslashes($kamar->spesifikasi ?? '') }}', '{{ addslashes($kamar->fasilitas ?? '') }}')" 
                     class="w-full rounded-xl border border-blue-600 bg-white px-4 py-2.5 text-sm font-bold text-blue-600 transition-colors hover:bg-blue-50 cursor-pointer">
-                    ✏️ Edit Spesifikasi & Harga
+                    Edit Spesifikasi & Harga
                 </button>
             </div>
         </div>
@@ -108,7 +105,6 @@
     </div>
 </div>
 
-{{-- MODAL INPUT METERAN --}}
 <div id="meteranModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-full max-w-lg scale-95 transform rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300">
         
@@ -155,7 +151,6 @@
     </div>
 </div>
 
-{{-- MODAL MAINTENANCE --}}
 <div id="maintenanceModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-full max-w-md scale-95 transform rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300 text-center">
         
@@ -179,7 +174,6 @@
     </div>
 </div>
 
-{{-- MODAL EDIT SPESIFIKASI & HARGA KAMAR --}}
 <div id="editKamarModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-300">
     <div class="w-full max-w-lg scale-95 transform rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -237,7 +231,7 @@
 </div>
 
 <script>
-    // --- MANAJEMEN OPERASI MODAL METERAN ---
+    // MODAL METERAN
     const meteranModal = document.getElementById('meteranModal');
     const meteranContent = meteranModal.querySelector('div.scale-95');
 
@@ -288,7 +282,7 @@
         }, 300);
     }
 
-    // --- MANAJEMEN OPERASI MODAL EDIT KAMAR (BARU) ---
+    // MODAL EDIT KAMAR
     const editKamarModal = document.getElementById('editKamarModal');
     const editKamarContent = editKamarModal.querySelector('div.scale-95');
 
@@ -318,7 +312,7 @@
         }, 300);
     }
 
-    // --- TOAST NOTIFIKASI HANDLING ---
+    // TOAST NOTIFIKASI HANDLING
     function showSuccessToast() {
         const toast = document.getElementById('toastSuccess');
         toast.classList.remove('hidden');
@@ -333,7 +327,7 @@
         }, 3000);
     }
 
-    // --- PROD AJAX SUBMIT (HANDLING ERROR SECARA ELEGAN) ---
+    // PROD AJAX SUBMIT
     document.getElementById('formMeteran').addEventListener('submit', function(e) {
         e.preventDefault(); 
 
@@ -359,11 +353,9 @@
             const data = await response.json();
             
             if (response.ok) {
-                // Jika status HTTP Berhasil (200)
                 closeMeteranModal(); 
                 showSuccessToast();  
             } else {
-                // Jika validasi gagal (422) atau server bermasalah (500)
                 let errorMessage = data.message || 'Terjadi kesalahan sistem.';
                 
                 if (data.errors) {

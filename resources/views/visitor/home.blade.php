@@ -19,14 +19,12 @@
         </div>
     </section>
 
-    {{-- BARIS 2: KABAR CABANG (Grid 3 Kolom) --}}
     <section class="space-y-6">
         <div class="flex items-end justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">Kabar Cabang</h2>
                 <p class="mt-2 text-sm text-gray-600">Daftar cabang kos dan ketersediaan kamar terbaru.</p>
             </div>
-            {{-- Tombol 'Lihat Semua' di kanan atas (muncul di layar tablet/desktop) --}}
             @if ($branches->count() > 3)
                 <a href="{{ route('visitor.branches') }}" class="hidden text-sm font-bold text-blue-600 transition-colors hover:text-blue-800 sm:block">
                     Lihat Semua Cabang &rarr;
@@ -34,9 +32,7 @@
             @endif
         </div>
 
-        {{-- Grid Responsif: 1 kolom di HP, 2 di Tablet, 3 di Desktop --}}
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {{-- Mengubah take(2) menjadi take(3) agar pas 3 kolom --}}
             @forelse ($branches->take(3) as $branch)
                 <article class="group flex flex-col rounded-3xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-md sm:p-6">
                     <h3 class="text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-600">{{ $branch->nama }}</h3>
@@ -67,7 +63,6 @@
             @endforelse
         </div>
 
-        {{-- Tombol 'Lihat Semua' di bawah (hanya muncul di layar HP) --}}
         @if ($branches->count() > 3)
             <div class="mt-6 sm:hidden">
                 <a href="{{ route('visitor.branches') }}" class="block w-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 text-center text-sm font-bold text-blue-600 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50">
@@ -77,7 +72,6 @@
         @endif
     </section>
 
-    {{-- BARIS 3: CARA PESAN --}}
     <section id="cara-pesan" class="scroll-mt-24 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm shadow-gray-200 sm:p-8 lg:p-10">
         <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">Alur Nyewa Kos</h2>
         <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

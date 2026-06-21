@@ -23,7 +23,6 @@
         <div class="p-6 space-y-4">
             @forelse($checkins as $kamar)
             @php
-                // Cek apakah ada transaksi DP yang sudah dibayar untuk kamar ini
                 $transaksiLunas = \App\Models\Transaksi::where('kamar_id', $kamar->id)
                                     ->whereIn('type', ['DP', 'DP Booking'])
                                     ->where('status_transaksi', 'Paid')
@@ -78,7 +77,7 @@
                         <th class="px-6 py-4 text-right">Aksi</th>
                     </tr>
                 </thead>
-                <!-- Di dalam file resources/views/admin/survey.blade.php -->
+
                 <tbody class="divide-y divide-gray-100">
                     @forelse($surveys as $survey)
                     <tr class="hover:bg-gray-50 transition-colors">
@@ -137,7 +136,6 @@
                         </td>
                     </tr>
                     @empty
-                    <!-- ... -->
                     @endforelse
                 </tbody>
             </table>
