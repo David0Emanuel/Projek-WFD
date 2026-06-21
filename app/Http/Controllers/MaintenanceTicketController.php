@@ -44,4 +44,22 @@ class MaintenanceTicketController extends Controller
 
         return redirect()->route('tenant.maintenance')->with('success', 'Tiket Maintenance Berhasil Dikirim');
     }
+    public function delete($id)
+    {
+        $ticket = MaintenanceTiket::where('id', $id)
+                    ->where('user_id', auth()->id()) // Pastikan tiket ini milik user yang sedang login
+                    ->firstOrFail();
+
+        if ($ticket->status !== 'Pending') {
+            return redirect()->back()->with('error', 'Tiket yang sudah diproses tidak dapat dibatalkan.');
+        }
+        if ($ticket->foto && File::exists(public_path($ticket->foto))) {
+            File::delete(public_path($ticket->foto));
+        }
+
+        // Hapus data dari database
+        $ticket->delete();
+
+        return redirect()->route('tenant.maintenance')->with('success', 'Tiket keluhan berhasil dibatalkan dan dihapus.');
+    }
 }

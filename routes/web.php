@@ -17,20 +17,22 @@ use App\Http\Controllers\SuperAdmin\CabangController;
 use App\Http\Controllers\SuperAdmin\PenghuniController;
 use App\Http\Controllers\SuperAdmin\KeuanganController;
 
-// Models (Hanya untuk keperluan rute Tenant sementara)
+// Models
 use App\Models\Transaksi;
 
 
 // =====================================================================
-// 1. VISITOR ROUTES (PUBLIC)
+// 1. VISITOR ROUTES (PUBLIC & TERLINDUNGI)
 // =====================================================================
+// Rute publik (Bebas diakses tanpa login)
 Route::get('/', [VisitorController::class, 'index'])->name('home');
 Route::get('/daftar-cabang', [VisitorController::class, 'branches'])->name('visitor.branches');
 Route::post('/daftar-cabang/survey', [VisitorController::class, 'storeSurvey'])->name('visitor.survey.store');
 Route::post('/daftar-cabang/booking', [VisitorController::class, 'storeBooking'])->name('visitor.booking.store');
 Route::get('/daftar-cabang/{id}', [VisitorController::class, 'show'])->name('visitor.branch.show');
 
-Route::prefix('visitor')->name('visitor.')->group(function () {
+// Rute khusus Visitor yang sudah login
+Route::middleware(['auth', 'role:visitor'])->prefix('visitor')->name('visitor.')->group(function () {
     Route::get('/profile', [VisitorController::class, 'profile'])->name('profile');
 });
 
@@ -38,17 +40,22 @@ Route::prefix('visitor')->name('visitor.')->group(function () {
 // =====================================================================
 // 2. AUTHENTICATION ROUTES (TERHUBUNG DATABASE)
 // =====================================================================
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Rute untuk yang belum login (Guest)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
+});
+
+// Rute Logout (Wajib login dulu)
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 
 // =====================================================================
-// 3. SUPER ADMIN ROUTES (TANPA MIDDLEWARE SEMENTARA)
+// 3. SUPER ADMIN ROUTES (TERKUNCI MIDDLEWARE)
 // =====================================================================
-Route::prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     
     // Dasbor Utama & Pengumuman
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -73,16 +80,13 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
         return view('superadmin.pengaturan.index');
     })->name('pengaturan.index');
 
-    // -------------------------------------------------------------------
-    // RUTE NOTIFIKASI & LOG AKTIVITAS (SUDAH DIPERBAIKI)
-    // -------------------------------------------------------------------
     // Rute Notifikasi Pembayaran & Survey
     Route::post('/notifications/mark-as-read', function() {
         \App\Models\AdminLog::whereIn('tipe', ['pembayaran', 'survey'])
                             ->where('is_read', false)
                             ->update(['is_read' => true]);
         return response()->json(['success' => true]);
-    })->name('notifications.clear'); // Cukup 'notifications.clear' karena sudah di dalam grup 'superadmin.'
+    })->name('notifications.clear'); 
 
     Route::get('/log-aktivitas', function() {
         $logs = \App\Models\AdminLog::where('tipe', 'login')
@@ -96,15 +100,15 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
                                         ];
                                     });
         return response()->json($logs);
-    })->name('log-aktivitas'); // Cukup 'log-aktivitas' karena sudah di dalam grup 'superadmin.'
+    })->name('log-aktivitas'); 
 
 });
 
 
 // =====================================================================
-// 4. ADMIN CABANG ROUTES (TANPA MIDDLEWARE SEMENTARA)
+// 4. ADMIN CABANG ROUTES (TERKUNCI MIDDLEWARE)
 // =====================================================================
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin_cabang'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [KamarController::class, 'index'])->name('dashboard');
     Route::get('/kamar', [KamarController::class, 'kamar'])->name('kamar');
     Route::get('/survey', [KamarController::class, 'survey'])->name('survey');
@@ -122,14 +126,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 
 // =====================================================================
-// 5. TENANT ROUTES (TANPA MIDDLEWARE SEMENTARA)
+// 5. TENANT ROUTES (TERKUNCI MIDDLEWARE)
 // =====================================================================
-Route::prefix('tenant')->name('tenant.')->group(function () {
+Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->name('tenant.')->group(function () {
     // Rute Dashboard Utama Tenant
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
-        // 1. Ambil SEMUA tagihan yang belum dibayar (Sewa Bulanan maupun Listrik)
+        // 1. Ambil SEMUA tagihan yang belum dibayar
         $tagihans = \App\Models\Transaksi::where('user_id', $user->id)
                         ->where('status_transaksi', 'Unpaid')
                         ->orderBy('created_at', 'desc')
@@ -144,22 +148,19 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
                             $query->orWhere('kos_id', $kosId);
                         })
                         ->latest()
-                        ->take(5) // Ambil 5 pengumuman terbaru
+                        ->take(5)
                         ->get();
         
-        // Kirim variabel 'tagihans', 'pengumumans', dan 'user' ke view
         return view('tenant.dashboard', compact('tagihans', 'pengumumans', 'user'));
     })->name('dashboard');
 
     // Rute Halaman Invoice & Riwayat Tagihan
     Route::get('/invoice', function () {
-        // Ambil Tagihan Aktif (Belum Lunas) untuk kolom kanan
         $tagihan_aktif = Transaksi::where('user_id', auth()->id())
                             ->where('status_transaksi', 'Unpaid')
                             ->latest()
                             ->first();
 
-        // Ambil SELURUH riwayat transaksi (Lunas & Belum Lunas) untuk tabel kiri
         $riwayat_transaksi = Transaksi::where('user_id', auth()->id())
                             ->latest()
                             ->get();
@@ -169,25 +170,24 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 
     Route::get('/maintenance', [App\Http\Controllers\MaintenanceTicketController::class, 'index'])->name('maintenance');
     Route::post('/maintenance', [App\Http\Controllers\MaintenanceTicketController::class, 'store'])->name('maintenance.store');
+    Route::delete('/maintenance/{id}', [App\Http\Controllers\MaintenanceTicketController::class, 'delete'])->name('maintenance.delete');
+    
+    // Rute Request Keluar (Sudah dimasukkan ke dalam grup tenant)
+    Route::post('/request-keluar', [\App\Http\Controllers\DashboardController::class, 'requestKeluar'])->name('request-keluar');
 });
 
 
 // =====================================================================
 // 6. TRANSAKSI & WEBHOOK GLOBAL
 // =====================================================================
-Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
-Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
-Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
-//ini endpoint/pintu masuk gitu yg buat micu payment controller, yg sudah saya jelaskan sebelumnya.
-Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout');
+// Rute Transaksi (Wajib Login)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
+    Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
+    Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
+    Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout');
+});
 
-// Webhook untuk Midtrans Payment Gateway
-//ini paling penting, soale ini untuk nerima callback dri server midtrans
+// Webhook untuk Midtrans Payment Gateway (TETAP PUBLIC)
 Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-//ini pake withourmiddleware soale kan laravel itu kayak prtect semua rute post pake csrf ya
-//sedangkan req pembayaran itu datenngnya dri pihak luar ,midtransa sendiri ga ada csrf dri browser internal
-//kalo ga pake itu makam laravel bakal anggepnya serangan dri luar 
-
-//untuk tenant request keluar
-Route::post('/tenant/request-keluar', [\App\Http\Controllers\DashboardController::class, 'requestKeluar'])->name('tenant.request-keluar');
