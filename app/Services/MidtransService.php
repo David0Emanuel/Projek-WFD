@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Services;
-
-use Midtrans\Config;
-use Midtrans\Snap;
+//import library resmi dari Midtrans,
+use Midtrans\Config; // pengaturan kunci server
+use Midtrans\Snap; //generate pop up pembayaran
 
 class MidtransService
 {
@@ -13,8 +13,8 @@ class MidtransService
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
         Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
+        Config::$isSanitized = true; //bersihin data dri karakter" yg bahaya
+        Config::$is3ds = true; // lapisan keamanan saat transaksi 
 
         //array kosong untuk menambal bug PHP 8
         $curlOptions = [

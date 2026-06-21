@@ -18,22 +18,23 @@ class PaymentController extends Controller
 
     public function checkout($id)
     {
-        // 1. Ambil data transaksi beserta data penyewa (relasi user)
+        //  Ambil data transaksi beserta data penyewa  dalam satu query 
         $transaksi = Transaksi::with('user')->findOrFail($id);
 
-        // 2. Siapkan data untuk dikirim ke Midtrans
+        // Siapin data untuk dikirim ke Midtrans
         $orderId = 'INV-' . $transaksi->id . '-' . time();// tambah waktu agar selalu unik
         $totalBayar = $transaksi->total; // Menggunakan kolom total
         $typePembayaran = $transaksi->type; // Bernilai 'DP Booking' atau 'Bulanan'
 
-        // Mengambil data spesifik dari model User
+        // mengambil data spesifik dari model User
         $customerDetails = [
             'nama'  => $transaksi->user->nama,
             'email' => $transaksi->user->email,
             'no_wa' => $transaksi->user->no_wa,
         ];
 
-        // 3. Panggil service Midtrans untuk menghasilkan token
+        // Panggil service Midtrans untuk menghasilkan token
+        //controller hanya perlu panggil service tersebut dan service yg bakal mengembalikan snap token
         $snapToken = $this->midtransService->createSnapToken(
             $orderId, 
             $totalBayar, 
@@ -41,7 +42,7 @@ class PaymentController extends Controller
             $typePembayaran
         );
 
-        // 4. Arahkan ke halaman UI (Tugas David)
+        // Arahkan ke halaman UI 
         if (strtoupper($transaksi->type) == 'DP') {
             // Jika ini pembayaran DP Booking, buka layout Visitor
             return view('visitor.pembayaran', compact('snapToken', 'totalBayar', 'orderId', 'transaksi'));

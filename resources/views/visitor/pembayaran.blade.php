@@ -35,12 +35,14 @@
     </button>
 </div>
 
+//client key yg emg dibuat untuk ekspos ke frontend
 <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 
 <script type="text/javascript">
     const payButton = document.getElementById('pay-button');
     
     payButton.addEventListener('click', function () {
+        //fungsi window dipanggil,snaptoken dikirim dri controller 
         window.snap.pay('{{ $snapToken }}', {
             onSuccess: function(result){
                 Swal.fire({

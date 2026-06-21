@@ -178,11 +178,16 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
 Route::post('/transaksi/bulanan', [TransaksiController::class, 'storeBulanan'])->name('transaksi.bulanan');
 Route::post('/transaksi/booking', [TransaksiController::class, 'storeBooking'])->name('transaksi.booking');
+//ini endpoint/pintu masuk gitu yg buat micu payment controller, yg sudah saya jelaskan sebelumnya.
 Route::get('/pembayaran/{id}', [PaymentController::class, 'checkout'])->name('pembayaran.checkout');
 
 // Webhook untuk Midtrans Payment Gateway
+//ini paling penting, soale ini untuk nerima callback dri server midtrans
 Route::post('/webhook/midtrans', [WebhookController::class, 'handlePayment'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+//ini pake withourmiddleware soale kan laravel itu kayak prtect semua rute post pake csrf ya
+//sedangkan req pembayaran itu datenngnya dri pihak luar ,midtransa sendiri ga ada csrf dri browser internal
+//kalo ga pake itu makam laravel bakal anggepnya serangan dri luar 
 
 //untuk tenant request keluar
 Route::post('/tenant/request-keluar', [\App\Http\Controllers\DashboardController::class, 'requestKeluar'])->name('tenant.request-keluar');
