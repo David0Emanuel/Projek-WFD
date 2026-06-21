@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="space-y-12 lg:space-y-16">
+    
 
     <section class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm shadow-gray-200 sm:p-10 lg:p-12">
         <div class="max-w-3xl space-y-4">
@@ -11,17 +12,18 @@
             <h1 class="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl md:text-5xl">Cari kos nyaman & sesuai budget di dekat kamu.</h1>
             <p class="text-sm leading-relaxed text-gray-600 sm:text-base">Jelajahi daftar cabang, cek total kamar, dan lihat sisa kamar tersedia sebelum booking. Login atau daftar untuk menyelesaikan pemesanan.</p>
             
-            <div class="mt-8 flex flex-wrap gap-3 sm:gap-2">
+            <div class="mt-8 flex flex-wrap gap-3 sm:gap-4">
                 <a href="{{ route('visitor.branches') }}" class="rounded-full bg-blue-600 px-6 py-4 text-center font-bold text-white transition-all hover:bg-blue-700 hover:shadow-md">Lihat Cabang Kos</a>
-                <a href="#cara-pesan" class="transition-all rounded-full border border-gray-200 bg-white px-6 py-4 text-center font-bold text-gray-700 hover:bg-gray-50 hover:shadow-sm">Cara Pesan</a>
+                <a href="#cara-pesan" class="rounded-full border border-gray-200 bg-white px-6 py-4 text-center font-bold text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm">Cara Pesan</a>
             </div>
         </div>
     </section>
 
-    <section class="space-y-3">
+    {{-- BARIS 2: KABAR CABANG (Grid 3 Kolom) --}}
+    <section class="space-y-6">
         <div class="flex items-end justify-between">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">Daftar Cabang</h2>
+                <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">Kabar Cabang</h2>
                 <p class="mt-2 text-sm text-gray-600">Daftar cabang kos dan ketersediaan kamar terbaru.</p>
             </div>
             {{-- Tombol 'Lihat Semua' di kanan atas (muncul di layar tablet/desktop) --}}
@@ -32,7 +34,9 @@
             @endif
         </div>
 
+        {{-- Grid Responsif: 1 kolom di HP, 2 di Tablet, 3 di Desktop --}}
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {{-- Mengubah take(2) menjadi take(3) agar pas 3 kolom --}}
             @forelse ($branches->take(3) as $branch)
                 <article class="group flex flex-col rounded-3xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-md sm:p-6">
                     <h3 class="text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-600">{{ $branch->nama }}</h3>
@@ -46,7 +50,7 @@
                         <div class="rounded-2xl bg-green-50 p-3 text-center sm:p-4">
                             <p class="text-[10px] font-bold uppercase tracking-wider text-green-600">Sisa Kosong</p>
                             {{-- Catatan: Menggunakan variabel kamar_kosong_count dari Controller sebelumnya --}}
-                            <p class="mt-1 text-xl font-black text-green-700">{{ $branch->kamar_kosong_count ?? 0 }}</p>
+                            <p class="mt-1 text-xl font-black text-green-700">{{ $branch->available_kamar_count ?? 0 }}</p>
                         </div>
                     </div>
 
