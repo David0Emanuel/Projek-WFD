@@ -38,7 +38,7 @@
                     
                     <form action="{{ route('logout') }}" method="POST" class="mt-2 block lg:mt-0 lg:inline lg:ml-2">
                         @csrf
-                        <button type="submit" class="w-full lg:w-auto rounded-full bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-rose-600">Logout</button>
+                        <button type="submit" class="w-full lg:w-auto rounded-full bg-red-600 px-4 py-2 text-white transition-colors hover:bg-rose-600">Logout</button>
                     </form>
                 @else
                     <div class="mt-2 flex flex-col gap-3 lg:mt-0 lg:flex-row lg:items-center lg:ml-2">

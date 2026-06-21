@@ -12,9 +12,8 @@
     <div class="flex min-h-screen">
         @include('components.admin.sidebar')
 
-        <!-- Overlay ketika sidebar terbuka di mobile -->
         <div id="sidebar-overlay"
-             class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"
+             class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden transition-opacity duration-300"
              onclick="toggleSidebar()">
         </div>
 
@@ -26,5 +25,15 @@
             </main>
         </div>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+    </script>
 </body>
 </html>
