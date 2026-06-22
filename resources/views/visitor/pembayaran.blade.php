@@ -35,7 +35,7 @@
     </button>
 </div>
 
-//client key yg emg dibuat untuk ekspos ke frontend
+<!-- client key yg emg dibuat untuk ekspos ke frontend -->
 <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 
 <script type="text/javascript">

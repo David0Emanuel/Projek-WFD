@@ -147,8 +147,7 @@
                 <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                     <h2 class="text-lg font-bold text-gray-900">Fasilitas Tersedia</h2>
                     <ul class="mt-4 space-y-3 text-sm text-gray-600">
-                        <!-- Memecah teks koma menjadi list ke bawah -->
-                            @foreach(explode(',', $contohKamar->fasilitas) as $fasilitas)
+                        @if($contohKamar && $contohKamar->fasilitas) @foreach(explode(',', $contohKamar->fasilitas) as $fasilitas)
                                 <li class="flex items-center gap-3"><span class="text-green-500">✓</span> {{ trim($fasilitas) }}</li>
                             @endforeach
                         @else
@@ -156,7 +155,7 @@
                         @endif
                     </ul>
                 </div>
-                
+
             </div>
             
         </div>

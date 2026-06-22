@@ -91,14 +91,13 @@ class DashboardController extends Controller
         })->implode(',');
 
 
-
         // 3. Kirim Pesan jika ada targetnya
         if (!empty($targetWA)) {
             $teksPesan = "*PENGUMUMAN KOS AJA*\n\n"
                        . "Halo Kak,\nAda informasi baru terkait hunian Anda:\n\n"
                        . "*{$pengumuman->judul}*\n"
                        . "{$pengumuman->isi}\n\n"
-                       . "_Pesan otomatis dari PuluBoys Manajemen_";
+                       . "_Pesan otomatis dari KosInAja Manajemen_";
 
             // Tambahkan withoutVerifying() untuk mengatasi error SSL Localhost
             $response = Http::withoutVerifying()->withHeaders([

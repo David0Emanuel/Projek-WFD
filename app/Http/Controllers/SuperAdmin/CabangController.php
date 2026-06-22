@@ -77,7 +77,7 @@ class CabangController extends Controller
         User::create([
             'nama'     => $request->admin_nama,
             'username' => $request->admin_username,
-            'email'    => $request->admin_username . '@puluboys.com', 
+            'email'    => $request->admin_username . '@kosinaja.com', 
             'no_wa'    => '0000', 
             'password' => \Illuminate\Support\Facades\Hash::make($request->admin_password),
             'role'     => 'admin_cabang',

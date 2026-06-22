@@ -10,7 +10,7 @@
             
             <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
                 <div class="border-b border-gray-100 bg-slate-50 px-5 py-4">
-                    <h3 class="text-base font-bold text-gray-800">Profil Aplikasi PuluBoys</h3>
+                    <h3 class="text-base font-bold text-gray-800">Profil Aplikasi Management</h3>
                     <p class="text-xs text-gray-500 mt-1">Informasi dasar yang akan ditampilkan ke penghuni (Tenant).</p>
                 </div>
                 <div class="p-5">
@@ -18,7 +18,7 @@
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-gray-600">Nama Perusahaan</label>
-                                <input type="text" value="PuluBoys Manajemen" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <input type="text" value="KosInAja" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
                             </div>
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-gray-600">Nomor WhatsApp CS</label>
@@ -27,7 +27,7 @@
                         </div>
                         <div>
                             <label class="mb-1 block text-xs font-semibold text-gray-600">Email Utama</label>
-                            <input type="email" value="admin@puluboys.com" class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <input type="email" value="superadmin@kosinaja.com" class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="mb-1 block text-xs font-semibold text-gray-600">Alamat Kantor Pusat</label>

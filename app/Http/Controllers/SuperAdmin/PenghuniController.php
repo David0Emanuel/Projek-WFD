@@ -20,7 +20,7 @@ class PenghuniController extends Controller
     public function show($id)
 {
     $penghuni = User::where('role', 'tenant')
-        ->with(['kamar.kos', 'transaksis', 'maintenanceTikets']) //  SUDAH DIPERBAIKI
+        ->with(['kamar.kos', 'transaksis', 'maintenanceTikets']) 
         ->findOrFail($id);
 
     return view('superadmin.penghuni.show', compact('penghuni'));
