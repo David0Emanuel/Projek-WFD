@@ -47,7 +47,6 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->name('sup
     
     // Dasbor Utama & Pengumuman
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/survey/{id}/status', [DashboardController::class, 'updateSurveyStatus'])->name('survey.status');
     Route::post('/pengumuman', [DashboardController::class, 'storePengumuman'])->name('pengumuman.store');
 
     // Manajemen Cabang (CRUD Resmi)

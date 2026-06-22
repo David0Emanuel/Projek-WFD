@@ -14,7 +14,6 @@ class CabangController extends Controller
 {
     public function index()
     {
-        // Panggil juga data relasi 'admin' agar bisa diedit di modal
         $cabang = Kos::with(['admin'])->withCount([
                 'kamars as kamar_count', 
                 'kamars as kamar_kosong_count' => function ($q) {

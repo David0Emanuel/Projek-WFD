@@ -77,7 +77,7 @@
                 <div id="profile-popup" class="absolute right-0 top-14 z-50 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-xl ring-1 ring-gray-900/5 hidden focus:outline-none">
                     <div class="px-4 py-3 border-b border-gray-100 bg-slate-50 rounded-t-lg">
                         <p class="text-sm font-bold text-gray-800">Administrator Utama</p>
-                        <p class="text-xs text-gray-500 truncate mt-0.5">superadmin@puluboys.com</p>
+                        <p class="text-xs text-gray-500 truncate mt-0.5">superadmin@kosinaja.com</p>
                     </div>
                     
                     <div class="py-1">
@@ -160,7 +160,6 @@
     });
 
     function clearNotif() {
-        // AWALAN SUPERADMIN DITAMBAHKAN KEMBALI
         fetch("{{ route('superadmin.notifications.clear') }}", {
             method: 'POST',
             headers: {
@@ -195,7 +194,6 @@
         list.classList.add('hidden');
         list.innerHTML = ''; // Reset list lama
 
-        // AWALAN SUPERADMIN DITAMBAHKAN KEMBALI
         fetch("{{ route('superadmin.log-aktivitas') }}")
             .then(response => response.json())
             .then(data => {
@@ -207,7 +205,6 @@
                     return;
                 }
 
-                // Inject data log ke dalam list modal
                 data.forEach(log => {
                     const li = document.createElement('li');
                     li.className = 'p-3 bg-slate-50 border border-slate-100/70 rounded-xl text-xs flex justify-between items-start gap-4 leading-relaxed';

@@ -48,19 +48,6 @@ class DashboardController extends Controller
     
     }
 
-    public function updateSurveyStatus(Request $request, $id)
-    {
-        $request->validate(['status' => 'required|in:Disetujui,Ditolak']);
-        $survey = Survey::findOrFail($id);
-        $survey->update([
-            'status' => $request->status,
-            'catatan_admin' => $request->catatan ?? null
-        ]);
-        return redirect()->back()->with('success', 'Permintaan survey berhasil diproses.');
-    }
-
-
-
     public function storePengumuman(Request $request)
     {
         $request->validate([

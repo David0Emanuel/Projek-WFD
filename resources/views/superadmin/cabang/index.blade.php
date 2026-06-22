@@ -51,26 +51,138 @@
                     </span>
                 </td>
                 <td class="px-5 py-3 text-right flex items-center justify-end gap-2">
-                    {{-- Tombol Edit (Kirim data kos & admin ke JS) --}}
-                    <button onclick='openEditModal({!! json_encode([
-                        "id" => $kos->id, 
-                        "nama" => $kos->nama, 
-                        "alamat" => $kos->alamat,
-                        "deskripsi" => $kos->deskripsi,
-                        "kamar_count" => $kos->kamar_count,
-                        "admin_nama" => $kos->admin->nama ?? "",
-                        "admin_username" => $kos->admin->username ?? ""
-                    ]) !!})'
+                    {{-- TOMBOL EDIT --}}
+                    <button onclick="openModal('modal-edit-{{ $kos->id }}')"
                         class="rounded bg-amber-400 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-500 cursor-pointer">
                         Edit
                     </button>
-                    {{-- Tombol Hapus --}}
-                    <button onclick="openDeleteModal({{ $kos->id }}, '{{ $kos->nama }}')"
+                    {{-- TOMBOL HAPUS --}}
+                    <button onclick="openModal('modal-hapus-{{ $kos->id }}')"
                         class="rounded bg-red-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-600 cursor-pointer">
                         Hapus
                     </button>
                 </td>
             </tr>
+
+            <div id="modal-edit-{{ $kos->id }}" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+                <div class="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between bg-amber-500 px-5 py-4 sticky top-0 z-10">
+                        <span class="text-base font-bold text-white">Edit Cabang & Admin</span>
+                        <button type="button" onclick="closeModal('modal-edit-{{ $kos->id }}')" class="text-amber-100 hover:text-white text-2xl cursor-pointer">&times;</button>
+                    </div>
+                    
+                    <form action="{{ route('superadmin.cabang.update', $kos->id) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 text-left">
+                        @csrf
+                        @method('PUT')
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Cabang</label>
+                                <input type="text" name="nama" value="{{ $kos->nama }}" required
+                                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Total Kamar</label>
+                                <input type="number" name="total_kamar" min="{{ $kos->kamar_count }}" value="{{ $kos->kamar_count }}" required
+                                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <p class="text-[10px] text-gray-500 mt-1">Isi angka lebih besar jika ingin menambah kamar baru.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Tipe Kamar Baru (Opsional)</label>
+                                <input type="text" name="tipe_kamar" placeholder="Isi jika menambah kamar"
+                                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Harga Kamar Baru (Opsional)</label>
+                                <input type="number" name="harga" min="0" placeholder="Isi jika menambah kamar"
+                                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Alamat Cabang</label>
+                            <textarea name="alamat" rows="2" required
+                                class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">{{ $kos->alamat }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Deskripsi Kos</label>
+                            <textarea name="deskripsi" rows="3"
+                                class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">{{ $kos->deskripsi }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Ganti Foto Kos (Opsional)</label>
+                            <input type="file" name="foto" accept="image/jpeg, image/png, image/jpg"
+                                class="w-full rounded-lg border border-gray-300 p-2 text-sm">
+                            <p class="text-[10px] text-gray-500 mt-1">Biarkan kosong jika tidak ingin mengganti foto.</p>
+                        </div>
+
+                        <hr class="border-gray-200 my-4">
+                        <h4 class="text-xs font-bold text-gray-700 uppercase mb-2">Data Akun Admin Cabang</h4>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap Admin</label>
+                            <input type="text" name="admin_nama" value="{{ $kos->admin->nama ?? '' }}" required
+                                class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Username Login</label>
+                                <input type="text" name="admin_username" value="{{ $kos->admin->username ?? '' }}" required
+                                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Password (Opsional)</label>
+                                <input type="password" name="admin_password" placeholder="Kosongkan jika tak diubah"
+                                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" onclick="closeModal('modal-edit-{{ $kos->id }}')"
+                                class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                class="flex-1 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-bold hover:bg-amber-600 cursor-pointer">
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="modal-hapus-{{ $kos->id }}" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+                <div class="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden">
+                    <div class="flex items-center justify-between bg-red-600 px-5 py-4">
+                        <span class="text-base font-bold text-white">Konfirmasi Hapus</span>
+                        <button type="button" onclick="closeModal('modal-hapus-{{ $kos->id }}')" class="text-red-200 hover:text-white text-2xl cursor-pointer">&times;</button>
+                    </div>
+                    <div class="p-6 text-left">
+                        <p class="text-sm text-gray-600 mb-1">Anda akan menghapus cabang:</p>
+                        <p class="text-base font-bold text-gray-800 mb-4">{{ $kos->nama }}</p>
+                        <p class="text-xs text-red-500 mb-5">Tindakan ini tidak dapat dibatalkan. Semua data kamar dan admin cabang ini juga akan ikut terhapus.</p>
+                        
+                        <form action="{{ route('superadmin.cabang.destroy', $kos->id) }}" method="POST" class="flex gap-3">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" onclick="closeModal('modal-hapus-{{ $kos->id }}')"
+                                class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                class="flex-1 py-2.5 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 cursor-pointer">
+                                Ya, Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             @empty
             <tr>
                 <td colspan="7" class="px-5 py-10 text-center text-gray-400">Belum ada cabang terdaftar.</td>
@@ -89,7 +201,7 @@
             <span class="text-base font-bold text-white">Tambah Cabang & Admin Baru</span>
             <button type="button" onclick="closeModal('modal-tambah')" class="text-blue-200 hover:text-white text-2xl cursor-pointer">&times;</button>
         </div>
-        <form action="{{ route('superadmin.cabang.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+        <form action="{{ route('superadmin.cabang.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 text-left">
             @csrf
             
             <div class="grid grid-cols-2 gap-4">
@@ -171,158 +283,15 @@
     </div>
 </div>
 
-<div id="modal-edit" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
-    <div class="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between bg-amber-500 px-5 py-4 sticky top-0 z-10">
-            <span class="text-base font-bold text-white">Edit Cabang & Admin</span>
-            <button type="button" onclick="closeModal('modal-edit')" class="text-amber-100 hover:text-white text-2xl cursor-pointer">&times;</button>
-        </div>
-        <form id="form-edit" action="" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
-            @csrf
-            @method('PUT')
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Cabang</label>
-                    <input type="text" id="edit-nama" name="nama" required
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                </div>
-                <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Total Kamar</label>
-                    <input type="number" id="edit-kamar" name="total_kamar" min="1" required
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <p class="text-[10px] text-gray-500 mt-1">Isi angka lebih besar jika ingin menambah kamar baru.</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tipe Kamar Baru (Opsional)</label>
-                    <input type="text" name="tipe_kamar" placeholder="Isi jika menambah kamar"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                </div>
-                <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Harga Kamar Baru (Opsional)</label>
-                    <input type="number" name="harga" min="0" placeholder="Isi jika menambah kamar"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Alamat Cabang</label>
-                <textarea id="edit-alamat" name="alamat" rows="2" required
-                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Deskripsi Kos</label>
-                <textarea id="edit-deskripsi" name="deskripsi" rows="3"
-                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Ganti Foto Kos (Opsional)</label>
-                <input type="file" name="foto" accept="image/jpeg, image/png, image/jpg"
-                    class="w-full rounded-lg border border-gray-300 p-2 text-sm">
-                <p class="text-[10px] text-gray-500 mt-1">Biarkan kosong jika tidak ingin mengganti foto.</p>
-            </div>
-
-            <hr class="border-gray-200 my-4">
-            <h4 class="text-xs font-bold text-gray-700 uppercase mb-2">Data Akun Admin Cabang</h4>
-
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap Admin</label>
-                <input type="text" id="edit-admin-nama" name="admin_nama" required
-                    class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Username Login</label>
-                    <input type="text" id="edit-admin-username" name="admin_username" required
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                </div>
-                <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Password (Opsional)</label>
-                    <input type="password" name="admin_password" placeholder="Kosongkan jika tak diubah"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                </div>
-            </div>
-
-            <div class="flex gap-3 pt-4">
-                <button type="button" onclick="closeModal('modal-edit')"
-                    class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 cursor-pointer">
-                    Batal
-                </button>
-                <button type="submit"
-                    class="flex-1 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-bold hover:bg-amber-600 cursor-pointer">
-                    Simpan Perubahan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div id="modal-hapus" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
-    <div class="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden">
-        <div class="flex items-center justify-between bg-red-600 px-5 py-4">
-            <span class="text-base font-bold text-white">Konfirmasi Hapus</span>
-            <button type="button" onclick="closeModal('modal-hapus')" class="text-red-200 hover:text-white text-2xl cursor-pointer">&times;</button>
-        </div>
-        <div class="p-6">
-            <p class="text-sm text-gray-600 mb-1">Anda akan menghapus cabang:</p>
-            <p id="hapus-nama" class="text-base font-bold text-gray-800 mb-4"></p>
-            <p class="text-xs text-red-500 mb-5">Tindakan ini tidak dapat dibatalkan. Semua data kamar dan admin cabang ini juga akan ikut terhapus.</p>
-            <form id="form-hapus" action="" method="POST" class="flex gap-3">
-                @csrf
-                @method('DELETE')
-                <button type="button" onclick="closeModal('modal-hapus')"
-                    class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 cursor-pointer">
-                    Batal
-                </button>
-                <button type="submit"
-                    class="flex-1 py-2.5 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 cursor-pointer">
-                    Ya, Hapus
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
 @endsection
 
 @push('scripts')
 <script>
-    // FUNGSI MEMBUKA & MENUTUP MODAL
     function openModal(id) {
         document.getElementById(id).classList.remove('hidden');
     }
     function closeModal(id) {
         document.getElementById(id).classList.add('hidden');
-    }
-
-    // FUNGSI MENGISI DATA KE DALAM FORM EDIT
-    function openEditModal(data) {
-        document.getElementById('edit-nama').value           = data.nama;
-        document.getElementById('edit-alamat').value         = data.alamat;
-        document.getElementById('edit-deskripsi').value      = data.deskripsi || '';
-        document.getElementById('edit-kamar').value          = data.kamar_count;
-        document.getElementById('edit-admin-nama').value     = data.admin_nama;
-        document.getElementById('edit-admin-username').value = data.admin_username;
-        
-        // Mencegah input jumlah kamar kurang dari yang sudah ada
-        document.getElementById('edit-kamar').setAttribute('min', data.kamar_count);
-        
-        // Atur action form menuju ke route update
-        document.getElementById('form-edit').action = `/superadmin/cabang/${data.id}`;
-        
-        openModal('modal-edit');
-    }
-
-    // FUNGSI MENGISI DATA KE DALAM FORM HAPUS
-    function openDeleteModal(id, nama) {
-        document.getElementById('hapus-nama').innerText = nama;
-        document.getElementById('form-hapus').action    = `/superadmin/cabang/${id}`;
-        openModal('modal-hapus');
     }
 </script>
 @endpush
